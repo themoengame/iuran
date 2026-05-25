@@ -215,10 +215,18 @@
 
             <div class="config-box">
                 <strong>⚙️ Konfigurasi GAS:</strong><br>
+                <div style="margin: 8px 0; padding: 8px; background: #fffbeb; border-left: 3px solid #f59e0b; border-radius: 4px;">
+                    <strong>🚨 PENTING - Setiap edit Code.gs harus REDEPLOY!</strong><br>
+                    Deploy → Manage Deployments → Pencil Icon → Deploy New Version
+                </div>
                 1. Buka Code.gs di Google Apps Script<br>
-                2. Ganti <code>YOUR_SPREADSHEET_ID</code> dengan ID Spreadsheet<br>
-                3. Deploy sebagai Web App (Deploy → New Deployment)<br>
-                4. Set access ke <code>"Anyone"</code> atau <code>"Anyone, even anonymous"</code><br>
+                2. Ganti <code>YOUR_SPREADSHEET_ID</code> dengan ID Spreadsheet Anda<br>
+                3. Jalankan fungsi <code>setupSpreadsheet()</code> sekali<br>
+                4. Deploy sebagai Web App:<br>
+                &nbsp;&nbsp;&nbsp;- Deploy → New Deployment → Web App<br>
+                &nbsp;&nbsp;&nbsp;- Execute as: <strong>Me</strong><br>
+                &nbsp;&nbsp;&nbsp;- Who has access: <strong>Anyone, even anonymous</strong><br>
+                &nbsp;&nbsp;&nbsp;- Klik <strong>Deploy</strong> → Authorize → Allow<br>
                 5. Copy URL, paste di bawah:<br>
                 <input type="text" id="gasUrlInput" placeholder="https://script.google.com/macros/s/XXXX/exec" 
                        style="width: 100%; margin-top: 8px; padding: 8px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 13px;">
@@ -440,20 +448,22 @@
 
                 showLoading(true);
 
-                // Buat nama callback unik
-                const callbackName = 'gasCallback_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                // Buat nama callback unik (hanya huruf dan angka)
+                const callbackName = 'cb' + Date.now() + Math.floor(Math.random() * 100000);
 
                 // Buat URL dengan parameter
                 const url = new URL(GAS_URL);
                 url.searchParams.append('action', action);
                 Object.keys(params).forEach(key => {
                     if (params[key] !== undefined && params[key] !== null) {
-                        url.searchParams.append(key, params[key]);
+                        url.searchParams.append(key, String(params[key]));
                     }
                 });
 
                 // Tambahkan callback untuk JSONP
                 url.searchParams.append('callback', callbackName);
+
+                console.log('[API Call] URL:', url.toString());
 
                 // Buat script tag untuk JSONP
                 const script = document.createElement('script');
@@ -462,20 +472,24 @@
 
                 // Setup callback global
                 window[callbackName] = function(data) {
+                    console.log('[API Response] Action:', action, 'Data:', data);
                     showLoading(false);
                     cleanup();
                     resolve(data);
                 };
 
-                // Handle error
-                script.onerror = function() {
+                // Handle error - script gagal load
+                script.onerror = function(err) {
+                    console.error('[API Error] Script failed to load. Action:', action);
+                    console.error('[API Error] URL:', url.toString());
                     showLoading(false);
                     cleanup();
-                    reject({ status: 'error', message: 'Gagal terhubung ke GAS. Cek URL dan pastikan GAS sudah di-deploy dengan access "Anyone".' });
+                    reject({ status: 'error', message: 'Gagal terhubung ke GAS. Script gagal dimuat. Cek console untuk detail.' });
                 };
 
                 // Handle timeout
                 const timeout = setTimeout(function() {
+                    console.error('[API Timeout] Action:', action);
                     showLoading(false);
                     cleanup();
                     reject({ status: 'error', message: 'Timeout: GAS tidak merespons dalam 10 detik.' });

@@ -2,106 +2,151 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Iuran RT</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Sistem Iuran RT - RW Sukamaju</title>
     <style>
-        * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+        * { box-sizing: border-box; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
         body { background: #e9f0f5; margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 24px; padding: 24px; }
-        h2, h3 { color: #1e3b4a; margin: 0 0 16px 0; }
-        button { background: #2c7da0; color: white; border: none; padding: 10px 20px; border-radius: 40px; cursor: pointer; }
-        input, select { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #cfdee9; border-radius: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 32px; padding: 24px; box-shadow: 0 12px 28px rgba(0,0,0,0.08); }
+        h2 { font-size: 1.6rem; color: #1e3b4a; margin: 0 0 20px 0; border-left: 5px solid #2c7da0; padding-left: 20px; }
+        h3 { font-size: 1.2rem; color: #1e4663; margin: 16px 0 12px 0; }
+        button, .btn { background: #2c7da0; color: white; border: none; padding: 10px 20px; border-radius: 40px; cursor: pointer; font-weight: 600; margin: 4px; }
+        button.danger { background: #c77d5e; }
+        button.success { background: #5e8b7e; }
+        button.secondary { background: #6c757d; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #cfdee9; border-radius: 24px; font-size: 1rem; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 20px; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 24px; }
+        .stat-card { background: #e9f0f5; padding: 14px; border-radius: 20px; text-align: center; }
+        .stat-value { font-size: 26px; font-weight: bold; color: #2c7da0; }
+        .stat-label { font-size: 11px; color: #5f7f8c; margin-top: 4px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #cfdee9; }
+        th { background: #e9f0f5; font-weight: 600; }
+        .badge-lunas { background: #e0f2e9; color: #2c7da0; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; }
+        .badge-belum { background: #fff2e6; color: #c77d5e; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; }
+        .nav-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; border-bottom: 1px solid #cfdee9; padding-bottom: 12px; }
+        .nav-tab { background: #e9f0f5; color: #2c7da0; border: none; padding: 8px 20px; border-radius: 40px; cursor: pointer; font-weight: 500; }
+        .nav-tab.active { background: #2c7da0; color: white; }
         .hidden { display: none; }
-        .stat-card { background: #e9f0f5; padding: 12px; border-radius: 16px; margin: 8px 0; text-align: center; }
-        .stat-value { font-size: 24px; font-weight: bold; color: #2c7da0; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 8px; text-align: left; border-bottom: 1px solid #cfdee9; }
-        .badge-lunas { background: #e0f2e9; padding: 4px 12px; border-radius: 20px; }
-        .badge-belum { background: #fff2e6; padding: 4px 12px; border-radius: 20px; }
-        .nav-btn { background: #e9f0f5; color: #2c7da0; margin-right: 8px; }
-        .nav-btn.active { background: #2c7da0; color: white; }
-        hr { margin: 16px 0; }
+        .role-selector { display: flex; gap: 12px; margin-bottom: 24px; }
+        .role-btn { flex: 1; background: white; border: 2px solid #2c7da0; color: #2c7da0; }
+        .role-btn.active { background: #2c7da0; color: white; }
+        .footer { font-size: 0.7rem; color: #5f7f8c; text-align: center; margin-top: 24px; border-top: 1px solid #cfdee9; padding-top: 16px; }
+        .msg { background: #e9f0f5; padding: 10px; border-radius: 20px; margin: 16px 0; text-align: center; }
+        hr { margin: 20px 0; border-color: #cfdee9; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h2>🏠 Sistem Iuran RT</h2>
-    
-    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-        <button onclick="showLogin('bendahara')" style="background:#2c7da0">Bendahara RT</button>
-        <button onclick="showLogin('anggota')" style="background:#5e8b7e">Anggota</button>
-        <button onclick="resetSheet()" style="background:#c77d5e">Reset Sheet (Admin)</button>
+    <h2>🏠 Sistem Iuran RW & RT</h2>
+
+    <div class="role-selector">
+        <button class="role-btn active" onclick="setRole('bendahara')">📋 Bendahara RT</button>
+        <button class="role-btn" onclick="setRole('anggota')">👤 Anggota</button>
     </div>
-    
+
     <!-- Login Bendahara -->
     <div id="loginBendaharaDiv">
-        <select id="rtSelect"><option value="RT01">RT 01</option><option value="RT02">RT 02</option><option value="RT03">RT 03</option></select>
-        <input type="password" id="pinBendahara" placeholder="PIN Bendahara (1234)">
-        <button onclick="loginBendahara()">Login</button>
+        <div class="form-grid">
+            <div><label>Pilih RT</label><select id="rtSelect"><option value="RT01">RT 01</option><option value="RT02">RT 02</option><option value="RT03">RT 03</option></select></div>
+            <div><label>PIN Bendahara</label><input type="password" id="pinBendahara" placeholder="Default: 1234"></div>
+        </div>
+        <button onclick="loginBendahara()" style="width:100%;">Login sebagai Bendahara</button>
+        <button onclick="resetAllSheets()" style="background:#c77d5e; margin-top:10px;">⚠️ Reset Semua Data (Admin)</button>
     </div>
-    
+
     <!-- Login Anggota -->
     <div id="loginAnggotaDiv" class="hidden">
-        <input type="tel" id="noWa" placeholder="Nomor WhatsApp (081234567890)">
-        <input type="password" id="pinAnggota" placeholder="PIN Anggota (1111)">
-        <button onclick="loginAnggota()">Login</button>
+        <div class="form-grid">
+            <div><label>Nomor WhatsApp</label><input type="tel" id="noWa" placeholder="081234567890"></div>
+            <div><label>PIN Anggota</label><input type="password" id="pinAnggota" placeholder="4 digit PIN"></div>
+        </div>
+        <button onclick="loginAnggota()" style="width:100%;">Login sebagai Anggota</button>
     </div>
-    
+
     <!-- Dashboard Bendahara -->
     <div id="dashboardBendahara" class="hidden">
-        <div id="bStats"></div>
-        
-        <h3>👥 Anggota</h3>
-        <input type="text" id="namaBaru" placeholder="Nama anggota baru">
-        <input type="tel" id="waBaru" placeholder="No WA">
-        <button onclick="tambahAnggota()">+ Tambah Anggota</button>
-        <div id="listAnggota"></div>
-        
-        <h3>💰 Tagihan</h3>
-        <button onclick="buatTagihan()">Buat Tagihan Bulan Ini</button>
-        <div id="listTagihan"></div>
-        
-        <h3>📤 Pengeluaran</h3>
-        <input type="date" id="tglKeluar"><input type="text" id="kategori" placeholder="Kategori"><input type="text" id="deskripsi" placeholder="Deskripsi"><input type="number" id="jumlah" placeholder="Jumlah">
-        <button onclick="tambahPengeluaran()">Catat Pengeluaran</button>
-        <div id="listPengeluaran"></div>
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="b-dashboard">📊 Dashboard</button>
+            <button class="nav-tab" data-tab="b-anggota">👥 Anggota</button>
+            <button class="nav-tab" data-tab="b-tagihan">📝 Tagihan</button>
+            <button class="nav-tab" data-tab="b-pengeluaran">💰 Kas Keluar</button>
+        </div>
+        <div id="b-dashboard"><div id="bStats" class="stats">Memuat data...</div></div>
+        <div id="b-anggota" class="hidden">
+            <h3>➕ Tambah Anggota Baru</h3>
+            <div class="form-grid"><input type="text" id="namaBaru" placeholder="Nama lengkap"><input type="tel" id="waBaru" placeholder="Nomor WhatsApp"></div>
+            <button onclick="tambahAnggota()">Simpan Anggota</button>
+            <h3>📋 Daftar Anggota</h3>
+            <div id="listAnggota"></div>
+            <div id="paginationAnggota" class="pagination" style="display:flex; gap:6px; justify-content:center; margin-top:16px;"></div>
+        </div>
+        <div id="b-tagihan" class="hidden">
+            <h3>💰 Buat Tagihan Bulanan</h3>
+            <input type="month" id="bulanTagihan" style="width:auto; display:inline-block;">
+            <button onclick="buatTagihan()">Buat Tagihan</button>
+            <h3>📋 Daftar Tagihan</h3>
+            <div id="listTagihan"></div>
+        </div>
+        <div id="b-pengeluaran" class="hidden">
+            <h3>📤 Catat Pengeluaran</h3>
+            <div class="form-grid">
+                <input type="date" id="tglKeluar"><input type="text" id="kategori" placeholder="Kategori"><input type="text" id="deskripsi" placeholder="Deskripsi"><input type="number" id="jumlah" placeholder="Jumlah (Rp)">
+            </div>
+            <button onclick="tambahPengeluaran()">Simpan Pengeluaran</button>
+            <h3>📋 Riwayat Pengeluaran</h3>
+            <div id="listPengeluaran"></div>
+        </div>
     </div>
-    
+
     <!-- Dashboard Anggota -->
     <div id="dashboardAnggota" class="hidden">
-        <div id="aTagihan"></div>
-        <div id="aLaporan"></div>
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="a-tagihan">📋 Tagihan Saya</button>
+            <button class="nav-tab" data-tab="a-laporan">📊 Laporan Kas RT</button>
+        </div>
+        <div id="a-tagihan"><div id="tagihanSaya"></div></div>
+        <div id="a-laporan" class="hidden"><div id="laporanKas"></div></div>
     </div>
-    
-    <div id="msg" style="margin-top: 16px; color: #666; text-align: center;"></div>
+
+    <div id="msg" class="msg"></div>
+    <div class="footer">💡 Demo: Bendahara RT01 PIN 1234 | Anggota: 081234567890 PIN 1111</div>
 </div>
 
 <script>
+// GANTI DENGAN URL GAS ANDA (YANG SUDAH DEDEPLOY)
 const GAS_URL = "https://script.google.com/macros/s/AKfycbyZsAmt1tl6d1Dv-W92dSrPmzu3TxX6J21UpPYUBtMm_Hbtbk6VlCp2xQmTA3kzP76c2Q/exec";
+
 let currentRT = "RT01";
 let currentAnggotaId = "";
+let currentPageAnggota = 1;
+let totalPagesAnggota = 1;
 
-function showMsg(msg, isError = false) {
+function showMsg(msg, isError) {
     const div = document.getElementById('msg');
     div.innerHTML = msg;
+    div.style.background = isError ? '#fff2e6' : '#e0f2e9';
     div.style.color = isError ? '#c77d5e' : '#2c7da0';
-    setTimeout(() => div.innerHTML = '', 4000);
+    setTimeout(() => { div.innerHTML = ''; div.style.background = ''; }, 4000);
 }
 
-function callAPI(action, params = {}, callback) {
-    const callbackName = `jsonp_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-    let url = `${GAS_URL}?action=${action}&callback=${callbackName}`;
-    for(let key in params) url += `&${key}=${encodeURIComponent(params[key])}`;
-    
+function callAPI(action, params, callback) {
+    const callbackName = 'cb_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
+    let url = GAS_URL + '?action=' + encodeURIComponent(action) + '&callback=' + callbackName;
+    for (let k in params) {
+        if (params[k] !== undefined && params[k] !== null) {
+            url += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+        }
+    }
     window[callbackName] = function(data) {
         delete window[callbackName];
         document.body.removeChild(script);
         callback(data);
     };
-    
     const script = document.createElement('script');
     script.src = url;
-    script.onerror = () => {
+    script.onerror = function() {
         delete window[callbackName];
         document.body.removeChild(script);
         callback({ status: "error", message: "Network error" });
@@ -109,21 +154,23 @@ function callAPI(action, params = {}, callback) {
     document.body.appendChild(script);
 }
 
-function resetSheet() {
-    if(confirm('RESET ALL SHEETS? Semua data akan dihapus!')) {
-        callAPI('resetSheet', {}, (res) => {
-            if(res.status === 'success') showMsg(res.message, false);
+function resetAllSheets() {
+    if (confirm('⚠️ RESET SEMUA DATA? Semua anggota, tagihan, pengeluaran akan dihapus. Aksi ini tidak bisa dibatalkan.')) {
+        callAPI('resetSheet', {}, function(res) {
+            if (res.status === 'success') showMsg(res.message, false);
             else showMsg(res.message, true);
         });
     }
 }
 
-function showLogin(role) {
+function setRole(role) {
+    document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
     document.getElementById('loginBendaharaDiv').classList.add('hidden');
     document.getElementById('loginAnggotaDiv').classList.add('hidden');
     document.getElementById('dashboardBendahara').classList.add('hidden');
     document.getElementById('dashboardAnggota').classList.add('hidden');
-    if(role === 'bendahara') document.getElementById('loginBendaharaDiv').classList.remove('hidden');
+    if (role === 'bendahara') document.getElementById('loginBendaharaDiv').classList.remove('hidden');
     else document.getElementById('loginAnggotaDiv').classList.remove('hidden');
 }
 
@@ -131,119 +178,139 @@ function showLogin(role) {
 function loginBendahara() {
     currentRT = document.getElementById('rtSelect').value;
     const pin = document.getElementById('pinBendahara').value;
-    callAPI('loginBendahara', { rt: currentRT, pin: pin }, (res) => {
-        if(res.valid) {
+    callAPI('loginBendahara', { rt: currentRT, pin: pin }, function(res) {
+        if (res.valid) {
             document.getElementById('loginBendaharaDiv').classList.add('hidden');
             document.getElementById('dashboardBendahara').classList.remove('hidden');
-            showMsg(`Login sebagai ${currentRT}`, false);
+            showMsg('Login berhasil sebagai Bendahara ' + currentRT, false);
             loadDashboard();
             loadAnggota();
             loadTagihanBendahara();
             loadPengeluaran();
-        } else showMsg("PIN salah!", true);
-    });
-}
-
-function loadDashboard() {
-    callAPI('getDashboard', { rt: currentRT }, (res) => {
-        if(res.status === 'success') {
-            const d = res.data;
-            document.getElementById('bStats').innerHTML = `
-                <div class="stat-card"><div class="stat-value">${d.totalAnggota}</div><div>Anggota</div></div>
-                <div class="stat-card"><div class="stat-value">Rp ${(d.totalTagihan||0).toLocaleString()}</div><div>Tagihan</div></div>
-                <div class="stat-card"><div class="stat-value">Rp ${(d.totalLunas||0).toLocaleString()}</div><div>Terkumpul</div></div>
-                <div class="stat-card"><div class="stat-value">${d.persenKepatuhan}%</div><div>Kepatuhan</div></div>
-                <div class="stat-card"><div class="stat-value">Rp ${(d.saldoKas||0).toLocaleString()}</div><div>Saldo Kas</div></div>
-            `;
+        } else {
+            showMsg('PIN salah! Coba 1234', true);
         }
     });
 }
 
-function loadAnggota() {
-    callAPI('getAnggota', { rt: currentRT }, (res) => {
-        if(res.status === 'success') {
-            let html = '<table><tr><th>Nama</th><th>No WA</th><th>Aksi</th></tr>';
-            res.data.forEach(a => {
-                html += `<tr><td>${a.nama}</td><td>${a.no_wa || '-'}</td><td><button onclick="hapusAnggota('${a.id}')">Hapus</button></td></tr>`;
-            });
-            html += '</table>';
+function loadDashboard() {
+    callAPI('getDashboard', { rt: currentRT }, function(res) {
+        if (res.status === 'success') {
+            const d = res.data;
+            document.getElementById('bStats').innerHTML = `
+                <div class="stat-card"><div class="stat-value">${d.totalAnggota}</div><div class="stat-label">Anggota Aktif</div></div>
+                <div class="stat-card"><div class="stat-value">Rp ${(d.totalTagihan||0).toLocaleString()}</div><div class="stat-label">Total Tagihan</div></div>
+                <div class="stat-card"><div class="stat-value">Rp ${(d.totalLunas||0).toLocaleString()}</div><div class="stat-label">Sudah Bayar</div></div>
+                <div class="stat-card"><div class="stat-value">${d.persenKepatuhan}%</div><div class="stat-label">Kepatuhan</div></div>
+                <div class="stat-card"><div class="stat-value">Rp ${(d.saldoKas||0).toLocaleString()}</div><div class="stat-label">Saldo Kas</div></div>
+            `;
+        } else showMsg('Gagal load dashboard', true);
+    });
+}
+
+function loadAnggota(page) {
+    page = page || 1;
+    currentPageAnggota = page;
+    callAPI('getAnggota', { rt: currentRT, page: page }, function(res) {
+        if (res.status === 'success') {
+            totalPagesAnggota = res.totalPages;
+            let html = '<table><thead><tr><th>Nama</th><th>No WA</th><th>Status</th><th>Aksi</th></tr></thead><tbody>';
+            for (let a of res.data) {
+                html += `<tr><td>${a.nama}</td><td>${a.no_wa || '-'}</td><td>${a.status}</td><td><button class="danger" onclick="hapusAnggota('${a.id}')">Hapus</button></td></tr>`;
+            }
+            html += '</tbody></table>';
             document.getElementById('listAnggota').innerHTML = html;
+            let pagHtml = '';
+            for (let i=1; i<=totalPagesAnggota; i++) {
+                pagHtml += `<button class="btn secondary" style="padding:4px 12px; margin:2px;" onclick="loadAnggota(${i})">${i}</button>`;
+            }
+            document.getElementById('paginationAnggota').innerHTML = pagHtml;
         }
     });
 }
 
 function tambahAnggota() {
-    const nama = document.getElementById('namaBaru').value;
-    const no_wa = document.getElementById('waBaru').value;
-    if(!nama) return showMsg("Nama wajib diisi", true);
-    callAPI('tambahAnggota', { rt: currentRT, nama, no_wa }, (res) => {
-        if(res.status === 'success') {
-            showMsg(`Anggota ditambahkan. PIN: ${res.pin}`, false);
+    const nama = document.getElementById('namaBaru').value.trim();
+    const no_wa = document.getElementById('waBaru').value.trim();
+    if (!nama) return showMsg('Nama wajib diisi', true);
+    callAPI('tambahAnggota', { rt: currentRT, nama: nama, no_wa: no_wa }, function(res) {
+        if (res.status === 'success') {
+            showMsg(`Anggota ${nama} ditambahkan. PIN: ${res.pin}`, false);
             document.getElementById('namaBaru').value = '';
             document.getElementById('waBaru').value = '';
-            loadAnggota();
+            loadAnggota(1);
             loadDashboard();
-        }
+        } else showMsg(res.message, true);
     });
 }
 
 function hapusAnggota(id) {
-    if(confirm('Hapus anggota ini?')) {
-        callAPI('hapusAnggota', { id }, (res) => {
-            loadAnggota();
-            loadDashboard();
+    if (confirm('Hapus anggota ini?')) {
+        callAPI('hapusAnggota', { id: id }, function(res) {
+            if (res.status === 'success') {
+                loadAnggota(currentPageAnggota);
+                loadDashboard();
+            } else showMsg(res.message, true);
         });
     }
 }
 
 function buatTagihan() {
-    callAPI('buatTagihan', { rt: currentRT }, (res) => {
-        if(res.status === 'success') {
+    let bulan = document.getElementById('bulanTagihan').value;
+    if (!bulan) bulan = new Date().toISOString().slice(0,7);
+    callAPI('buatTagihan', { rt: currentRT, bulan: bulan }, function(res) {
+        if (res.status === 'success') {
             showMsg(res.message, false);
             loadTagihanBendahara();
             loadDashboard();
-        }
+        } else showMsg(res.message, true);
     });
 }
 
 function loadTagihanBendahara() {
-    callAPI('getTagihan', { rt: currentRT }, (res) => {
-        if(res.status === 'success') {
-            if(res.data.length === 0) { document.getElementById('listTagihan').innerHTML = '<p>Belum ada tagihan</p>'; return; }
-            let html = '<table><tr><th>Jenis</th><th>Nominal</th><th>Status</th><th>Aksi</th></tr>';
-            for(const t of res.data) {
+    callAPI('getTagihan', { rt: currentRT }, function(res) {
+        if (res.status === 'success') {
+            if (!res.data.length) {
+                document.getElementById('listTagihan').innerHTML = '<p>Belum ada tagihan. Buat tagihan dulu.</p>';
+                return;
+            }
+            let html = '<table><thead><tr><th>Jenis Iuran</th><th>Nominal</th><th>Status</th><th>Aksi</th></tr></thead><tbody>';
+            for (let t of res.data) {
                 html += `<tr>
                     <td>${t.jenis_iuran_id}</td>
                     <td>Rp ${(t.nominal||0).toLocaleString()}</td>
-                    <td>${t.status === 'Lunas' ? '<span class="badge-lunas">Lunas</span>' : '<span class="badge-belum">Belum</span>'}</td>
-                    <td>${t.status !== 'Lunas' ? `<button onclick="verifikasiBayar('${t.id}')">Verifikasi</button>` : '-'}</td>
+                    <td><span class="${t.status === 'Lunas' ? 'badge-lunas' : 'badge-belum'}">${t.status}</span></td>
+                    <td>${t.status !== 'Lunas' ? `<button class="success" onclick="verifikasiBayar('${t.id}')">Verifikasi</button>` : '-'}</td>
                 </tr>`;
             }
-            html += '</table>';
+            html += '</tbody></table>';
             document.getElementById('listTagihan').innerHTML = html;
         }
     });
 }
 
 function verifikasiBayar(id) {
-    callAPI('verifikasiBayar', { id }, (res) => {
-        if(res.status === 'success') {
-            showMsg("Pembayaran diverifikasi", false);
+    callAPI('verifikasiBayar', { id: id }, function(res) {
+        if (res.status === 'success') {
+            showMsg('Pembayaran diverifikasi', false);
             loadTagihanBendahara();
             loadDashboard();
-        }
+        } else showMsg(res.message, true);
     });
 }
 
 function loadPengeluaran() {
-    callAPI('getPengeluaran', { rt: currentRT }, (res) => {
-        if(res.status === 'success') {
-            if(res.data.length === 0) { document.getElementById('listPengeluaran').innerHTML = '<p>Belum ada pengeluaran</p>'; return; }
-            let html = '<table><tr><th>Tanggal</th><th>Kategori</th><th>Deskripsi</th><th>Jumlah</th></tr>';
-            for(const p of res.data) {
+    callAPI('getPengeluaran', { rt: currentRT }, function(res) {
+        if (res.status === 'success') {
+            if (!res.data.length) {
+                document.getElementById('listPengeluaran').innerHTML = '<p>Belum ada pengeluaran</p>';
+                return;
+            }
+            let html = '<table><thead><tr><th>Tanggal</th><th>Kategori</th><th>Deskripsi</th><th>Jumlah</th></tr></thead><tbody>';
+            for (let p of res.data) {
                 html += `<tr><td>${p.tanggal}</td><td>${p.kategori}</td><td>${p.deskripsi}</td><td>Rp ${(p.jumlah||0).toLocaleString()}</td></tr>`;
             }
-            html += '</table>';
+            html += '</tbody></table>';
             document.getElementById('listPengeluaran').innerHTML = html;
         }
     });
@@ -251,88 +318,108 @@ function loadPengeluaran() {
 
 function tambahPengeluaran() {
     const tanggal = document.getElementById('tglKeluar').value;
-    const kategori = document.getElementById('kategori').value;
-    const deskripsi = document.getElementById('deskripsi').value;
+    const kategori = document.getElementById('kategori').value.trim();
+    const deskripsi = document.getElementById('deskripsi').value.trim();
     const jumlah = document.getElementById('jumlah').value;
-    if(!tanggal || !kategori || !jumlah) return showMsg("Lengkapi data", true);
-    callAPI('tambahPengeluaran', { rt: currentRT, tanggal, kategori, deskripsi, jumlah }, (res) => {
-        if(res.status === 'success') {
-            showMsg("Pengeluaran dicatat", false);
+    if (!tanggal || !kategori || !jumlah) return showMsg('Lengkapi semua field', true);
+    callAPI('tambahPengeluaran', { rt: currentRT, tanggal: tanggal, kategori: kategori, deskripsi: deskripsi, jumlah: jumlah }, function(res) {
+        if (res.status === 'success') {
+            showMsg('Pengeluaran dicatat', false);
             document.getElementById('tglKeluar').value = '';
             document.getElementById('kategori').value = '';
             document.getElementById('deskripsi').value = '';
             document.getElementById('jumlah').value = '';
             loadPengeluaran();
             loadDashboard();
-        }
+        } else showMsg(res.message, true);
     });
 }
 
 // ==================== ANGGOTA ====================
 function loginAnggota() {
-    const noWa = document.getElementById('noWa').value;
-    const pin = document.getElementById('pinAnggota').value;
-    callAPI('loginAnggota', { noWa, pin }, (res) => {
-        if(res.valid) {
+    const noWa = document.getElementById('noWa').value.trim();
+    const pin = document.getElementById('pinAnggota').value.trim();
+    if (!noWa || !pin) return showMsg('Masukkan No WA dan PIN', true);
+    callAPI('loginAnggota', { noWa: noWa, pin: pin }, function(res) {
+        if (res.valid) {
             currentAnggotaId = res.anggotaId;
             currentRT = res.rt;
             document.getElementById('loginAnggotaDiv').classList.add('hidden');
             document.getElementById('dashboardAnggota').classList.remove('hidden');
-            showMsg(`Selamat datang ${res.nama} (${currentRT})`, false);
-            loadTagihanAnggota();
+            showMsg('Selamat datang ' + res.nama + ' (' + currentRT + ')', false);
+            loadTagihanSaya();
             loadLaporanKas();
-        } else showMsg("Nomor WA atau PIN salah! Coba: 081234567890 / 1111", true);
+        } else {
+            showMsg('Nomor WA atau PIN salah. Coba 081234567890 / 1111', true);
+        }
     });
 }
 
-function loadTagihanAnggota() {
-    callAPI('getTagihanSaya', { anggotaId: currentAnggotaId }, (res) => {
-        if(res.status === 'success') {
-            if(res.data.length === 0) { document.getElementById('aTagihan').innerHTML = '<p>Belum ada tagihan</p>'; return; }
-            let html = '<h3>📋 Tagihan Saya</h3>能able><th>Bulan</th><th>Jenis Iuran</th><th>Nominal</th><th>Status</th><th>Aksi</th></tr>';
-            for(const t of res.data) {
+function loadTagihanSaya() {
+    callAPI('getTagihanSaya', { anggotaId: currentAnggotaId }, function(res) {
+        if (res.status === 'success') {
+            if (!res.data.length) {
+                document.getElementById('tagihanSaya').innerHTML = '<p>Belum ada tagihan.</p>';
+                return;
+            }
+            let html = '<table><thead><tr><th>Bulan</th><th>Jenis Iuran</th><th>Nominal</th><th>Status</th><th>Aksi</th></tr></thead><tbody>';
+            for (let t of res.data) {
                 html += `<tr>
                     <td>${t.bulan}</td>
                     <td>${t.jenis_iuran_id}</td>
                     <td>Rp ${(t.nominal||0).toLocaleString()}</td>
-                    <td>${t.status === 'Lunas' ? '<span class="badge-lunas">Lunas</span>' : '<span class="badge-belum">Belum</span>'}</td>
-                    <td>${t.status !== 'Lunas' ? `<button onclick="laporBayar('${t.id}')">Lapor Bayar</button>` : '-'}</td>
+                    <td><span class="${t.status === 'Lunas' ? 'badge-lunas' : 'badge-belum'}">${t.status}</span></td>
+                    <td>${t.status !== 'Lunas' ? `<button class="success" onclick="laporBayar('${t.id}')">Lapor Bayar</button>` : '-'}</td>
                 </tr>`;
             }
-            html += '</table>';
-            document.getElementById('aTagihan').innerHTML = html;
+            html += '</tbody></table>';
+            document.getElementById('tagihanSaya').innerHTML = html;
         }
     });
 }
 
 function laporBayar(tagihanId) {
-    if(confirm('Konfirmasi sudah transfer? Bendahara akan verifikasi.')) {
-        callAPI('laporBayar', { tagihanId }, (res) => {
-            if(res.status === 'success') {
+    if (confirm('Konfirmasi sudah transfer? Bendahara akan memverifikasi.')) {
+        callAPI('laporBayar', { tagihanId: tagihanId }, function(res) {
+            if (res.status === 'success') {
                 showMsg(res.message, false);
-                loadTagihanAnggota();
-            }
+                loadTagihanSaya();
+            } else showMsg(res.message, true);
         });
     }
 }
 
 function loadLaporanKas() {
-    callAPI('getLaporanKas', { rt: currentRT }, (res) => {
-        if(res.status === 'success') {
+    callAPI('getLaporanKas', { rt: currentRT }, function(res) {
+        if (res.status === 'success') {
             const d = res.data;
-            document.getElementById('aLaporan').innerHTML = `
-                <h3>📊 Laporan Kas ${currentRT}</h3>
-                <div class="stat-card"><div class="stat-value">Rp ${(d.totalPemasukan||0).toLocaleString()}</div><div>Total Pemasukan</div></div>
-                <div class="stat-card"><div class="stat-value">Rp ${(d.totalPengeluaran||0).toLocaleString()}</div><div>Total Pengeluaran</div></div>
-                <div class="stat-card"><div class="stat-value">Rp ${(d.saldoKas||0).toLocaleString()}</div><div>Saldo Kas</div></div>
+            document.getElementById('laporanKas').innerHTML = `
+                <div class="stats">
+                    <div class="stat-card"><div class="stat-value">Rp ${(d.totalPemasukan||0).toLocaleString()}</div><div class="stat-label">Total Pemasukan</div></div>
+                    <div class="stat-card"><div class="stat-value">Rp ${(d.totalPengeluaran||0).toLocaleString()}</div><div class="stat-label">Total Pengeluaran</div></div>
+                    <div class="stat-card"><div class="stat-value">Rp ${(d.saldoKas||0).toLocaleString()}</div><div class="stat-label">Saldo Kas</div></div>
+                </div>
             `;
         }
     });
 }
 
-// Set default
+// ==================== NAVIGASI TAB ====================
+document.querySelectorAll('.nav-tab').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const parent = this.closest('.nav-tabs').parentElement;
+        parent.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        const tabId = this.dataset.tab;
+        parent.querySelectorAll('[id^="b-"], [id^="a-"]').forEach(div => div.classList.add('hidden'));
+        document.getElementById(tabId).classList.remove('hidden');
+    });
+});
+
+// Set default date
 document.getElementById('tglKeluar').value = new Date().toISOString().slice(0,10);
-showLogin('bendahara');
+document.getElementById('bulanTagihan').value = new Date().toISOString().slice(0,7);
+setRole('bendahara');
 </script>
 </body>
 </html>

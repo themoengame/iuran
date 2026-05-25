@@ -12,6 +12,7 @@
         h2, h3 { margin-bottom: 16px; color: #1e3c72; }
         button { background: #2a5298; color: white; border: none; padding: 12px; border-radius: 10px; font-size: 16px; cursor: pointer; width: 100%; margin-top: 8px; }
         button.danger { background: #dc3545; }
+        button.success { background: #28a745; }
         input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; }
         .hidden { display: none; }
         .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
@@ -23,14 +24,16 @@
         .nav { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
         .nav-btn { background: #e9ecef; color: #333; width: auto; padding: 8px 16px; margin: 0; }
         .nav-btn.active { background: #2a5298; color: white; }
-        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 8px; z-index: 1000; }
+        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 8px; z-index: 1000; animation: fadeOut 3s forwards; }
+        @keyframes fadeOut { 0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+        .loading { text-align: center; padding: 20px; color: #666; }
     </style>
 </head>
 <body>
 <div class="container">
     <!-- Login Screen -->
     <div id="loginScreen" class="card">
-        <h2>🏠 Sistem Iuran RT</h2>
+        <h2>🏠 Sistem Iuran Multi-RT</h2>
         <p style="margin-bottom: 16px; color: #666;">Pilih RT dan masukkan PIN Bendahara</p>
         <select id="selectRT">
             <option value="RT01">RT 01</option>
@@ -44,7 +47,7 @@
     <!-- Main App -->
     <div id="mainApp" class="hidden">
         <div class="card">
-            <h2 id="rtTitle">🏠 RT</h2>
+            <h2 id="rtTitle">🏠 Loading...</h2>
             <div class="nav">
                 <button class="nav-btn active" data-tab="dashboard">📊 Dashboard</button>
                 <button class="nav-btn" data-tab="anggota">👥 Anggota</button>
@@ -57,7 +60,7 @@
         <div id="dashboardTab" class="tab-content">
             <div class="card">
                 <h3>Ringkasan Keuangan</h3>
-                <div id="dashboardStats" class="stats"></div>
+                <div id="dashboardStats" class="stats"><div class="loading">Loading...</div></div>
             </div>
         </div>
         
@@ -71,7 +74,7 @@
             </div>
             <div class="card">
                 <h3>📋 Daftar Anggota</h3>
-                <div id="daftarAnggota"></div>
+                <div id="daftarAnggota"><div class="loading">Loading...</div></div>
                 <div id="paginationAnggota" style="display: flex; gap: 8px; margin-top: 16px; justify-content: center;"></div>
             </div>
         </div>
@@ -80,12 +83,12 @@
         <div id="tagihanTab" class="tab-content hidden">
             <div class="card">
                 <h3>💰 Buat Tagihan Bulanan</h3>
-                <input type="month" id="bulanTagihan" value="2026-06">
+                <input type="month" id="bulanTagihan">
                 <button onclick="buatTagihan()">Buat Tagihan</button>
             </div>
             <div class="card">
                 <h3>📋 Daftar Tagihan</h3>
-                <div id="daftarTagihan"></div>
+                <div id="daftarTagihan"><div class="loading">Loading...</div></div>
             </div>
         </div>
         
@@ -101,7 +104,7 @@
             </div>
             <div class="card">
                 <h3>📋 Riwayat Pengeluaran</h3>
-                <div id="daftarPengeluaran"></div>
+                <div id="daftarPengeluaran"><div class="loading">Loading...</div></div>
             </div>
         </div>
     </div>
@@ -114,6 +117,7 @@
     let currentRT = 'RT01';
     let currentPageAnggota = 1;
     let totalPagesAnggota = 1;
+    let requestId = 0;
     
     function showToast(msg) {
         const existing = document.querySelector('.toast');
@@ -125,163 +129,182 @@
         setTimeout(() => toast.remove(), 3000);
     }
     
-    async function callAPI(action, params = {}) {
+    function callAPI(action, params = {}, callback) {
+        const callbackName = `jsonp_${Date.now()}_${++requestId}`;
         params.action = action;
         params.rt = currentRT;
+        params.callback = callbackName;
+        
         const url = GAS_URL + '?' + new URLSearchParams(params).toString();
-        try {
-            const response = await fetch(url);
-            return await response.json();
-        } catch(e) {
-            showToast('Error: ' + e.message);
-            return {status: 'error', message: e.message};
-        }
+        
+        window[callbackName] = function(data) {
+            delete window[callbackName];
+            document.body.removeChild(script);
+            callback(data);
+        };
+        
+        const script = document.createElement('script');
+        script.src = url;
+        script.onerror = () => {
+            delete window[callbackName];
+            document.body.removeChild(script);
+            callback({status: 'error', message: 'Network error'});
+        };
+        document.body.appendChild(script);
     }
     
-    async function login() {
+    function login() {
         const pin = document.getElementById('pinInput').value;
         currentRT = document.getElementById('selectRT').value;
-        const result = await callAPI('login', {pin: pin});
-        if(result.status === 'success') {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            document.getElementById('rtTitle').innerHTML = `🏠 ${currentRT} - ${result.message}`;
-            loadDashboard();
-            loadAnggota();
-            loadTagihan();
-            loadPengeluaran();
-        } else {
-            showToast('PIN salah!');
-        }
-    }
-    
-    async function loadDashboard() {
-        const result = await callAPI('dashboard');
-        if(result.status === 'success') {
-            const d = result.data;
-            document.getElementById('dashboardStats').innerHTML = `
-                <div class="stat"><div class="stat-value">${d.totalAnggota}</div><div class="stat-label">Anggota Aktif</div></div>
-                <div class="stat"><div class="stat-value">${formatRupiah(d.totalTagihan)}</div><div class="stat-label">Total Tagihan</div></div>
-                <div class="stat"><div class="stat-value">${formatRupiah(d.totalLunas)}</div><div class="stat-label">Sudah Bayar</div></div>
-                <div class="stat"><div class="stat-value">${d.persenKepatuhan}%</div><div class="stat-label">Kepatuhan</div></div>
-                <div class="stat"><div class="stat-value">${formatRupiah(d.totalPemasukan)}</div><div class="stat-label">Total Pemasukan</div></div>
-                <div class="stat"><div class="stat-value">${formatRupiah(d.totalPengeluaran)}</div><div class="stat-label">Pengeluaran</div></div>
-                <div class="stat"><div class="stat-value">${formatRupiah(d.saldoKas)}</div><div class="stat-label">Saldo Kas</div></div>
-                <div class="stat"><div class="stat-value">${formatRupiah(d.totalBelum)}</div><div class="stat-label">Belum Bayar</div></div>
-            `;
-        }
-    }
-    
-    async function loadAnggota(page = 1) {
-        currentPageAnggota = page;
-        const result = await callAPI('anggota', {page: page});
-        if(result.status === 'success') {
-            totalPagesAnggota = result.totalPages;
-            let html = '<table><tr><th>Nama</th><th>No WA</th><th>Aksi</th></tr>';
-            result.data.forEach(a => {
-                html += `<tr>
-                    <td>${a.nama}</td>
-                    <td>${a.no_wa || '-'}</td>
-                    <td><button class="danger" style="padding:6px 12px;" onclick="hapusAnggota('${a.id}')">Hapus</button></td>
-                </tr>`;
-            });
-            html += '</table>';
-            document.getElementById('daftarAnggota').innerHTML = html;
-            
-            // Pagination
-            let paginHtml = '';
-            for(let i=1; i<=totalPagesAnggota; i++) {
-                paginHtml += `<button class="${i === page ? 'active' : ''}" style="width:auto; padding:6px 12px;" onclick="loadAnggota(${i})">${i}</button>`;
+        callAPI('login', {pin: pin}, (result) => {
+            if(result.status === 'success') {
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                document.getElementById('rtTitle').innerHTML = `🏠 ${currentRT}`;
+                loadDashboard();
+                loadAnggota();
+                loadTagihan();
+                loadPengeluaran();
+                showToast('Login berhasil!');
+            } else {
+                showToast('PIN salah!');
             }
-            document.getElementById('paginationAnggota').innerHTML = paginHtml;
-        }
+        });
     }
     
-    async function tambahAnggota() {
+    function loadDashboard() {
+        callAPI('dashboard', {}, (result) => {
+            if(result.status === 'success') {
+                const d = result.data;
+                document.getElementById('dashboardStats').innerHTML = `
+                    <div class="stat"><div class="stat-value">${d.totalAnggota}</div><div class="stat-label">Anggota Aktif</div></div>
+                    <div class="stat"><div class="stat-value">${formatRupiah(d.totalTagihan)}</div><div class="stat-label">Total Tagihan</div></div>
+                    <div class="stat"><div class="stat-value">${formatRupiah(d.totalLunas)}</div><div class="stat-label">Sudah Bayar</div></div>
+                    <div class="stat"><div class="stat-value">${d.persenKepatuhan}%</div><div class="stat-label">Kepatuhan</div></div>
+                    <div class="stat"><div class="stat-value">${formatRupiah(d.totalPemasukan)}</div><div class="stat-label">Pemasukan</div></div>
+                    <div class="stat"><div class="stat-value">${formatRupiah(d.totalPengeluaran)}</div><div class="stat-label">Pengeluaran</div></div>
+                    <div class="stat"><div class="stat-value">${formatRupiah(d.saldoKas)}</div><div class="stat-label">Saldo Kas</div></div>
+                    <div class="stat"><div class="stat-value">${formatRupiah(d.totalBelum)}</div><div class="stat-label">Belum Bayar</div></div>
+                `;
+            }
+        });
+    }
+    
+    function loadAnggota(page = 1) {
+        currentPageAnggota = page;
+        callAPI('anggota', {page: page}, (result) => {
+            if(result.status === 'success') {
+                totalPagesAnggota = result.totalPages;
+                let html = '<table> hilab<th>Nama</th><th>No WA</th><th>Aksi</th></tr>';
+                result.data.forEach(a => {
+                    html += `<tr>
+                        <td>${a.nama}</td>
+                        <td>${a.no_wa || '-'}</td>
+                        <td><button class="danger" style="padding:6px 12px;" onclick="hapusAnggota('${a.id}')">Hapus</button></td>
+                    </tr>`;
+                });
+                html += '</table>';
+                document.getElementById('daftarAnggota').innerHTML = html;
+                
+                let paginHtml = '';
+                for(let i=1; i<=totalPagesAnggota; i++) {
+                    paginHtml += `<button class="${i === page ? 'active' : ''}" style="width:auto; padding:6px 12px;" onclick="loadAnggota(${i})">${i}</button>`;
+                }
+                document.getElementById('paginationAnggota').innerHTML = paginHtml;
+            }
+        });
+    }
+    
+    function tambahAnggota() {
         const nama = document.getElementById('namaAnggota').value;
         const no_wa = document.getElementById('noWaAnggota').value;
         if(!nama) return showToast('Nama wajib diisi');
         
-        const result = await callAPI('tambahAnggota', {nama, no_wa});
-        if(result.status === 'success') {
-            showToast('Anggota ditambahkan');
-            document.getElementById('namaAnggota').value = '';
-            document.getElementById('noWaAnggota').value = '';
-            loadAnggota(1);
-            loadDashboard();
-        }
-    }
-    
-    async function hapusAnggota(id) {
-        if(confirm('Hapus anggota ini?')) {
-            const result = await callAPI('hapusAnggota', {id});
+        callAPI('tambahAnggota', {nama, no_wa}, (result) => {
             if(result.status === 'success') {
-                showToast('Anggota dihapus');
-                loadAnggota(currentPageAnggota);
+                showToast('Anggota ditambahkan');
+                document.getElementById('namaAnggota').value = '';
+                document.getElementById('noWaAnggota').value = '';
+                loadAnggota(1);
                 loadDashboard();
             }
+        });
+    }
+    
+    function hapusAnggota(id) {
+        if(confirm('Hapus anggota ini?')) {
+            callAPI('hapusAnggota', {id}, (result) => {
+                if(result.status === 'success') {
+                    showToast('Anggota dihapus');
+                    loadAnggota(currentPageAnggota);
+                    loadDashboard();
+                }
+            });
         }
     }
     
-    async function buatTagihan() {
-        const bulan = document.getElementById('bulanTagihan').value;
-        const result = await callAPI('buatTagihan', {bulan});
-        showToast(result.message);
-        loadDashboard();
-        loadTagihan();
+    function buatTagihan() {
+        const bulan = document.getElementById('bulanTagihan').value || new Date().toISOString().slice(0,7);
+        callAPI('buatTagihan', {bulan}, (result) => {
+            showToast(result.message);
+            loadDashboard();
+            loadTagihan();
+        });
     }
     
-    async function loadTagihan() {
-        const result = await callAPI('tagihan');
-        if(result.status === 'success') {
-            if(result.data.length === 0) {
-                document.getElementById('daftarTagihan').innerHTML = '<p style="color:#666;">Belum ada tagihan. Silakan buat tagihan terlebih dahulu.</p>';
-                return;
+    function loadTagihan() {
+        callAPI('tagihan', {}, (result) => {
+            if(result.status === 'success') {
+                if(result.data.length === 0) {
+                    document.getElementById('daftarTagihan').innerHTML = '<p style="color:#666;">Belum ada tagihan. Silakan buat tagihan terlebih dahulu.</p>';
+                    return;
+                }
+                let html = '能able <thead><tr><th>Jenis Iuran</th><th>Nominal</th><th>Status</th><th>Aksi</th></tr></thead><tbody>';
+                for(const t of result.data) {
+                    html += `<tr>
+                        <td>${t.jenis_iuran_id}</td>
+                        <td>${formatRupiah(t.nominal)}</td>
+                        <td><span style="background:${t.status === 'Lunas' ? '#d4edda' : '#f8d7da'}; padding:4px 8px; border-radius:12px;">${t.status}</span></td>
+                        <td>${t.status !== 'Lunas' ? `<button class="success" onclick="verifikasiBayar('${t.id}')" style="background:#28a745; padding:6px 12px;">Verifikasi</button>` : '-'}</td>
+                    </tr>`;
+                }
+                html += '</tbody></table>';
+                document.getElementById('daftarTagihan').innerHTML = html;
             }
-            let html = '<table><tr><th>Jenis Iuran</th><th>Nominal</th><th>Status</th><th>Aksi</th></tr>';
-            // Kelompokkan berdasarkan jenis iuran (sederhana)
-            for(const t of result.data) {
-                html += `<tr>
-                    <td>${t.jenis_iuran_id}</td>
-                    <td>${formatRupiah(t.nominal)}</td>
-                    <td><span style="background:${t.status === 'Lunas' ? '#d4edda' : '#f8d7da'}; padding:4px 8px; border-radius:12px;">${t.status}</span></td>
-                    <td>${t.status !== 'Lunas' ? `<button onclick="verifikasiBayar('${t.id}')" style="background:#28a745; padding:6px 12px;">Verifikasi</button>` : '-'}</td>
-                </tr>`;
-            }
-            html += '</table>';
-            document.getElementById('daftarTagihan').innerHTML = html;
-        }
+        });
     }
     
-    async function verifikasiBayar(id) {
-        const result = await callAPI('verifikasiBayar', {id});
-        showToast(result.message);
-        loadDashboard();
-        loadTagihan();
+    function verifikasiBayar(id) {
+        callAPI('verifikasiBayar', {id}, (result) => {
+            showToast(result.message);
+            loadDashboard();
+            loadTagihan();
+        });
     }
     
-    async function loadPengeluaran() {
-        const result = await callAPI('pengeluaran');
-        if(result.status === 'success') {
-            if(result.data.length === 0) {
-                document.getElementById('daftarPengeluaran').innerHTML = '<p style="color:#666;">Belum ada pengeluaran.</p>';
-                return;
+    function loadPengeluaran() {
+        callAPI('pengeluaran', {}, (result) => {
+            if(result.status === 'success') {
+                if(result.data.length === 0) {
+                    document.getElementById('daftarPengeluaran').innerHTML = '<p style="color:#666;">Belum ada pengeluaran.</p>';
+                    return;
+                }
+                let html = '能able <thead><tr><th>Tanggal</th><th>Kategori</th><th>Deskripsi</th><th>Jumlah</th></tr></thead><tbody>';
+                for(const p of result.data) {
+                    html += `<tr>
+                        <td>${p.tanggal}</td>
+                        <td>${p.kategori}</td>
+                        <td>${p.deskripsi}</td>
+                        <td>${formatRupiah(p.jumlah)}</td>
+                    </tr>`;
+                }
+                html += '</tbody></table>';
+                document.getElementById('daftarPengeluaran').innerHTML = html;
             }
-            let html = '<table><tr><th>Tanggal</th><th>Kategori</th><th>Deskripsi</th><th>Jumlah</th></tr>';
-            for(const p of result.data) {
-                html += `<tr>
-                    <td>${p.tanggal}</td>
-                    <td>${p.kategori}</td>
-                    <td>${p.deskripsi}</td>
-                    <td>${formatRupiah(p.jumlah)}</td>
-                </tr>`;
-            }
-            html += '</table>';
-            document.getElementById('daftarPengeluaran').innerHTML = html;
-        }
+        });
     }
     
-    async function tambahPengeluaran() {
+    function tambahPengeluaran() {
         const tanggal = document.getElementById('tglPengeluaran').value;
         const kategori = document.getElementById('kategoriPengeluaran').value;
         const deskripsi = document.getElementById('deskripsiPengeluaran').value;
@@ -289,16 +312,17 @@
         
         if(!tanggal || !kategori || !jumlah) return showToast('Lengkapi data');
         
-        const result = await callAPI('tambahPengeluaran', {tanggal, kategori, deskripsi, jumlah});
-        if(result.status === 'success') {
-            showToast('Pengeluaran dicatat');
-            document.getElementById('tglPengeluaran').value = '';
-            document.getElementById('kategoriPengeluaran').value = '';
-            document.getElementById('deskripsiPengeluaran').value = '';
-            document.getElementById('jumlahPengeluaran').value = '';
-            loadDashboard();
-            loadPengeluaran();
-        }
+        callAPI('tambahPengeluaran', {tanggal, kategori, deskripsi, jumlah}, (result) => {
+            if(result.status === 'success') {
+                showToast('Pengeluaran dicatat');
+                document.getElementById('tglPengeluaran').value = '';
+                document.getElementById('kategoriPengeluaran').value = '';
+                document.getElementById('deskripsiPengeluaran').value = '';
+                document.getElementById('jumlahPengeluaran').value = '';
+                loadDashboard();
+                loadPengeluaran();
+            }
+        });
     }
     
     function formatRupiah(angka) {

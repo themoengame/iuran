@@ -35,15 +35,16 @@
         .footer { font-size: 0.7rem; color: #5f7f8c; text-align: center; margin-top: 24px; border-top: 1px solid #cfdee9; padding-top: 16px; }
         .msg { background: #e9f0f5; padding: 10px; border-radius: 20px; margin: 16px 0; text-align: center; }
         hr { margin: 20px 0; border-color: #cfdee9; }
+        .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
     </style>
 </head>
 <body>
 <div class="container">
     <h2>🏠 Sistem Iuran RW & RT</h2>
 
-    <div class="role-selector">
-        <button class="role-btn active" onclick="setRole('bendahara')">📋 Bendahara RT</button>
-        <button class="role-btn" onclick="setRole('anggota')">👤 Anggota</button>
+    <div class="role-selector" id="roleSelector">
+        <button class="role-btn active" data-role="bendahara">📋 Bendahara RT</button>
+        <button class="role-btn" data-role="anggota">👤 Anggota</button>
     </div>
 
     <!-- Login Bendahara -->
@@ -80,7 +81,7 @@
             <button onclick="tambahAnggota()">Simpan Anggota</button>
             <h3>📋 Daftar Anggota</h3>
             <div id="listAnggota"></div>
-            <div id="paginationAnggota" class="pagination" style="display:flex; gap:6px; justify-content:center; margin-top:16px;"></div>
+            <div id="paginationAnggota" class="pagination"></div>
         </div>
         <div id="b-tagihan" class="hidden">
             <h3>💰 Buat Tagihan Bulanan</h3>
@@ -163,16 +164,32 @@ function resetAllSheets() {
     }
 }
 
+// Perbaikan: menggunakan event listener, bukan inline onclick dengan event
 function setRole(role) {
-    document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    document.getElementById('loginBendaharaDiv').classList.add('hidden');
-    document.getElementById('loginAnggotaDiv').classList.add('hidden');
-    document.getElementById('dashboardBendahara').classList.add('hidden');
-    document.getElementById('dashboardAnggota').classList.add('hidden');
-    if (role === 'bendahara') document.getElementById('loginBendaharaDiv').classList.remove('hidden');
-    else document.getElementById('loginAnggotaDiv').classList.remove('hidden');
+    const btns = document.querySelectorAll('.role-btn');
+    btns.forEach(btn => btn.classList.remove('active'));
+    if (role === 'bendahara') {
+        btns[0].classList.add('active');
+        document.getElementById('loginBendaharaDiv').classList.remove('hidden');
+        document.getElementById('loginAnggotaDiv').classList.add('hidden');
+        document.getElementById('dashboardBendahara').classList.add('hidden');
+        document.getElementById('dashboardAnggota').classList.add('hidden');
+    } else {
+        btns[1].classList.add('active');
+        document.getElementById('loginBendaharaDiv').classList.add('hidden');
+        document.getElementById('loginAnggotaDiv').classList.remove('hidden');
+        document.getElementById('dashboardBendahara').classList.add('hidden');
+        document.getElementById('dashboardAnggota').classList.add('hidden');
+    }
 }
+
+// Event listener untuk role selector
+document.getElementById('roleSelector').addEventListener('click', function(e) {
+    const btn = e.target.closest('.role-btn');
+    if (!btn) return;
+    const role = btn.getAttribute('data-role');
+    setRole(role);
+});
 
 // ==================== BENDAHARA ====================
 function loginBendahara() {
@@ -306,7 +323,7 @@ function loadPengeluaran() {
                 document.getElementById('listPengeluaran').innerHTML = '<p>Belum ada pengeluaran</p>';
                 return;
             }
-            let html = '<table><thead><tr><th>Tanggal</th><th>Kategori</th><th>Deskripsi</th><th>Jumlah</th></tr></thead><tbody>';
+            let html = '</table><thead><tr><th>Tanggal</th><th>Kategori</th><th>Deskripsi</th><th>Jumlah</th></tr></thead><tbody>';
             for (let p of res.data) {
                 html += `<tr><td>${p.tanggal}</td><td>${p.kategori}</td><td>${p.deskripsi}</td><td>Rp ${(p.jumlah||0).toLocaleString()}</td></tr>`;
             }
@@ -362,7 +379,7 @@ function loadTagihanSaya() {
                 document.getElementById('tagihanSaya').innerHTML = '<p>Belum ada tagihan.</p>';
                 return;
             }
-            let html = '<table><thead><tr><th>Bulan</th><th>Jenis Iuran</th><th>Nominal</th><th>Status</th><th>Aksi</th></tr></thead><tbody>';
+            let html = '能able<thead><tr><th>Bulan</th><th>Jenis Iuran</th><th>Nominal</th><th>Status</th><th>Aksi</th></tr></thead><tbody>';
             for (let t of res.data) {
                 html += `<tr>
                     <td>${t.bulan}</td>
@@ -405,13 +422,15 @@ function loadLaporanKas() {
 }
 
 // ==================== NAVIGASI TAB ====================
-document.querySelectorAll('.nav-tab').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const parent = this.closest('.nav-tabs').parentElement;
-        parent.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        const tabId = this.dataset.tab;
-        parent.querySelectorAll('[id^="b-"], [id^="a-"]').forEach(div => div.classList.add('hidden'));
+document.querySelectorAll('.nav-tabs').forEach(tabs => {
+    tabs.addEventListener('click', function(e) {
+        const tabBtn = e.target.closest('.nav-tab');
+        if (!tabBtn) return;
+        const container = tabBtn.closest('.nav-tabs').parentElement;
+        container.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
+        tabBtn.classList.add('active');
+        const tabId = tabBtn.dataset.tab;
+        container.querySelectorAll('[id^="b-"], [id^="a-"]').forEach(div => div.classList.add('hidden'));
         document.getElementById(tabId).classList.remove('hidden');
     });
 });
@@ -419,6 +438,7 @@ document.querySelectorAll('.nav-tab').forEach(btn => {
 // Set default date
 document.getElementById('tglKeluar').value = new Date().toISOString().slice(0,10);
 document.getElementById('bulanTagihan').value = new Date().toISOString().slice(0,7);
+// Set default role
 setRole('bendahara');
 </script>
 </body>

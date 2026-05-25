@@ -491,26 +491,80 @@
         // ============================================
         const mockData = {
             anggota: [
-                { id: 'AGT001', nama: 'Budi Santoso', no_wa: '081234567890', pin: '1234', status: 'aktif', rt_id: 'RT01', tgl_daftar: '2024-01-15' },
-                { id: 'AGT002', nama: 'Siti Aminah', no_wa: '081234567891', pin: '5678', status: 'aktif', rt_id: 'RT01', tgl_daftar: '2024-01-20' },
-                { id: 'AGT003', nama: 'Ahmad Fauzi', no_wa: '081234567892', pin: '9012', status: 'aktif', rt_id: 'RT01', tgl_daftar: '2024-02-01' },
-                { id: 'AGT004', nama: 'Dewi Lestari', no_wa: '081234567893', pin: '3456', status: 'aktif', rt_id: 'RT01', tgl_daftar: '2024-02-10' },
-                { id: 'AGT005', nama: 'Eko Prasetyo', no_wa: '081234567894', pin: '7890', status: 'nonaktif', rt_id: 'RT01', tgl_daftar: '2024-03-01' },
+                // RT01 - 3 anggota
+                { id: 'AGT001', nama: 'Budi Santoso', no_wa: '081234567890', pin: '1111', status: 'aktif', rt_id: 'RT01', tgl_daftar: '2024-01-15' },
+                { id: 'AGT002', nama: 'Siti Aminah', no_wa: '081234567891', pin: '1112', status: 'aktif', rt_id: 'RT01', tgl_daftar: '2024-01-20' },
+                { id: 'AGT003', nama: 'Ahmad Fauzi', no_wa: '081234567892', pin: '1113', status: 'aktif', rt_id: 'RT01', tgl_daftar: '2024-02-01' },
+                // RT02 - 3 anggota
+                { id: 'AGT004', nama: 'Dewi Lestari', no_wa: '081234567893', pin: '2221', status: 'aktif', rt_id: 'RT02', tgl_daftar: '2024-02-10' },
+                { id: 'AGT005', nama: 'Eko Prasetyo', no_wa: '081234567894', pin: '2222', status: 'aktif', rt_id: 'RT02', tgl_daftar: '2024-03-01' },
+                { id: 'AGT006', nama: 'Fitriani Wulandari', no_wa: '081234567895', pin: '2223', status: 'aktif', rt_id: 'RT02', tgl_daftar: '2024-03-15' },
+                // RT03 - 3 anggota
+                { id: 'AGT007', nama: 'Gunawan Saputra', no_wa: '081234567896', pin: '3331', status: 'aktif', rt_id: 'RT03', tgl_daftar: '2024-04-01' },
+                { id: 'AGT008', nama: 'Hesti Kusuma', no_wa: '081234567897', pin: '3332', status: 'aktif', rt_id: 'RT03', tgl_daftar: '2024-04-10' },
+                { id: 'AGT009', nama: 'Indra Wijaya', no_wa: '081234567898', pin: '3333', status: 'aktif', rt_id: 'RT03', tgl_daftar: '2024-04-20' },
+                // RT04 - 3 anggota
+                { id: 'AGT010', nama: 'Joko Susilo', no_wa: '081234567899', pin: '4441', status: 'aktif', rt_id: 'RT04', tgl_daftar: '2024-05-01' },
+                { id: 'AGT011', nama: 'Kartika Sari', no_wa: '081234567900', pin: '4442', status: 'aktif', rt_id: 'RT04', tgl_daftar: '2024-05-10' },
+                { id: 'AGT012', nama: 'Lukman Hakim', no_wa: '081234567901', pin: '4443', status: 'aktif', rt_id: 'RT04', tgl_daftar: '2024-05-20' },
+                // RT05 - 3 anggota
+                { id: 'AGT013', nama: 'Maya Anggraini', no_wa: '081234567902', pin: '5551', status: 'aktif', rt_id: 'RT05', tgl_daftar: '2024-06-01' },
+                { id: 'AGT014', nama: 'Nugroho Adi', no_wa: '081234567903', pin: '5552', status: 'aktif', rt_id: 'RT05', tgl_daftar: '2024-06-10' },
+                { id: 'AGT015', nama: 'Olivia Putri', no_wa: '081234567904', pin: '5553', status: 'aktif', rt_id: 'RT05', tgl_daftar: '2024-06-20' },
             ],
             tagihan: [
+                // RT01 - Tagihan
                 { id: 'TAG001', anggota_id: 'AGT001', bulan: '2024-05', jenis_iuran_id: 'JEN01', nominal: 50000, status: 'Lunas', tgl_bayar: '2024-05-05', bukti: 'Transfer', rt_id: 'RT01' },
                 { id: 'TAG002', anggota_id: 'AGT001', bulan: '2024-05', jenis_iuran_id: 'JEN02', nominal: 20000, status: 'Lunas', tgl_bayar: '2024-05-05', bukti: 'Transfer', rt_id: 'RT01' },
                 { id: 'TAG003', anggota_id: 'AGT002', bulan: '2024-05', jenis_iuran_id: 'JEN01', nominal: 50000, status: 'Belum', tgl_bayar: '', bukti: '', rt_id: 'RT01' },
                 { id: 'TAG004', anggota_id: 'AGT002', bulan: '2024-05', jenis_iuran_id: 'JEN02', nominal: 20000, status: 'Belum', tgl_bayar: '', bukti: '', rt_id: 'RT01' },
                 { id: 'TAG005', anggota_id: 'AGT003', bulan: '2024-05', jenis_iuran_id: 'JEN01', nominal: 50000, status: 'Lunas', tgl_bayar: '2024-05-10', bukti: 'Cash', rt_id: 'RT01' },
                 { id: 'TAG006', anggota_id: 'AGT003', bulan: '2024-05', jenis_iuran_id: 'JEN02', nominal: 20000, status: 'Belum', tgl_bayar: '', bukti: '', rt_id: 'RT01' },
-                { id: 'TAG007', anggota_id: 'AGT004', bulan: '2024-05', jenis_iuran_id: 'JEN01', nominal: 50000, status: 'Belum', tgl_bayar: '', bukti: '', rt_id: 'RT01' },
-                { id: 'TAG008', anggota_id: 'AGT004', bulan: '2024-05', jenis_iuran_id: 'JEN02', nominal: 20000, status: 'Belum', tgl_bayar: '', bukti: '', rt_id: 'RT01' },
+                // RT02 - Tagihan
+                { id: 'TAG007', anggota_id: 'AGT004', bulan: '2024-05', jenis_iuran_id: 'JEN01', nominal: 50000, status: 'Belum', tgl_bayar: '', bukti: '', rt_id: 'RT02' },
+                { id: 'TAG008', anggota_id: 'AGT004', bulan: '2024-05', jenis_iuran_id: 'JEN02', nominal: 20000, status: 'Belum', tgl_bayar: '', bukti: '', rt_id: 'RT02' },
+                { id: 'TAG009', anggota_id: 'AGT005', bulan: '2024-05', jenis_iuran_id: 'JEN01', nominal: 50000, status: 'Lunas', tgl_bayar: '2024-05-08', bukti: 'Transfer', rt_id: 'RT02' },
+                { id: 'TAG010', anggota_id: 'AGT005', bulan: '2024-05', jenis_iuran_id: 'JEN02', nominal: 20000, status: 'Lunas', tgl_bayar: '2024-05-08', bukti: 'Transfer', rt_id: 'RT02' },
+                { id: 'TAG011', anggota_id: 'AGT006', bulan: '2024-05', jenis_iuran_id: 'JEN01', nominal: 50000, status: 'Belum', tgl_bayar: '', bukti: '', rt_id: 'RT02' },
+                { id: 'TAG012', anggota_id: 'AGT006', bulan: '2024-05', jenis_iuran_id: 'JEN02', nominal: 20000, status: 'Belum', tgl_bayar: '', bukti: '', rt_id: 'RT02' },
+                // RT03 - Tagihan
+                { id: 'TAG013', anggota_id: 'AGT007', bulan: '2024-05', jenis_iuran_id: 'JEN01', nominal: 50000, status: 'Belum', tgl_bayar: '', bukti: '', rt_id: 'RT03' },
+                { id: 'TAG014', anggota_id: 'AGT007', bulan: '2024-05', jenis_iuran_id: 'JEN02', nominal: 20000, status: 'Belum', tgl_bayar: '', bukti: '', rt_id: 'RT03' },
+                { id: 'TAG015', anggota_id: 'AGT008', bulan: '2024-05', jenis_iuran_id: 'JEN01', nominal: 50000, status: 'Lunas', tgl_bayar: '2024-05-12', bukti: 'Cash', rt_id: 'RT03' },
+                { id: 'TAG016', anggota_id: 'AGT008', bulan: '2024-05', jenis_iuran_id: 'JEN02', nominal: 20000, status: 'Lunas', tgl_bayar: '2024-05-12', bukti: 'Cash', rt_id: 'RT03' },
+                { id: 'TAG017', anggota_id: 'AGT009', bulan: '2024-05', jenis_iuran_id: 'JEN01', nominal: 50000, status: 'Belum', tgl_bayar: '', bukti: '', rt_id: 'RT03' },
+                { id: 'TAG018', anggota_id: 'AGT009', bulan: '2024-05', jenis_iuran_id: 'JEN02', nominal: 20000, status: 'Belum', tgl_bayar: '', bukti: '', rt_id: 'RT03' },
+                // RT04 - Tagihan
+                { id: 'TAG019', anggota_id: 'AGT010', bulan: '2024-05', jenis_iuran_id: 'JEN01', nominal: 50000, status: 'Lunas', tgl_bayar: '2024-05-15', bukti: 'Transfer', rt_id: 'RT04' },
+                { id: 'TAG020', anggota_id: 'AGT010', bulan: '2024-05', jenis_iuran_id: 'JEN02', nominal: 20000, status: 'Belum', tgl_bayar: '', bukti: '', rt_id: 'RT04' },
+                { id: 'TAG021', anggota_id: 'AGT011', bulan: '2024-05', jenis_iuran_id: 'JEN01', nominal: 50000, status: 'Belum', tgl_bayar: '', bukti: '', rt_id: 'RT04' },
+                { id: 'TAG022', anggota_id: 'AGT011', bulan: '2024-05', jenis_iuran_id: 'JEN02', nominal: 20000, status: 'Belum', tgl_bayar: '', bukti: '', rt_id: 'RT04' },
+                { id: 'TAG023', anggota_id: 'AGT012', bulan: '2024-05', jenis_iuran_id: 'JEN01', nominal: 50000, status: 'Lunas', tgl_bayar: '2024-05-18', bukti: 'Cash', rt_id: 'RT04' },
+                { id: 'TAG024', anggota_id: 'AGT012', bulan: '2024-05', jenis_iuran_id: 'JEN02', nominal: 20000, status: 'Lunas', tgl_bayar: '2024-05-18', bukti: 'Cash', rt_id: 'RT04' },
+                // RT05 - Tagihan
+                { id: 'TAG025', anggota_id: 'AGT013', bulan: '2024-05', jenis_iuran_id: 'JEN01', nominal: 50000, status: 'Belum', tgl_bayar: '', bukti: '', rt_id: 'RT05' },
+                { id: 'TAG026', anggota_id: 'AGT013', bulan: '2024-05', jenis_iuran_id: 'JEN02', nominal: 20000, status: 'Belum', tgl_bayar: '', bukti: '', rt_id: 'RT05' },
+                { id: 'TAG027', anggota_id: 'AGT014', bulan: '2024-05', jenis_iuran_id: 'JEN01', nominal: 50000, status: 'Belum', tgl_bayar: '', bukti: '', rt_id: 'RT05' },
+                { id: 'TAG028', anggota_id: 'AGT014', bulan: '2024-05', jenis_iuran_id: 'JEN02', nominal: 20000, status: 'Belum', tgl_bayar: '', bukti: '', rt_id: 'RT05' },
+                { id: 'TAG029', anggota_id: 'AGT015', bulan: '2024-05', jenis_iuran_id: 'JEN01', nominal: 50000, status: 'Lunas', tgl_bayar: '2024-05-20', bukti: 'Transfer', rt_id: 'RT05' },
+                { id: 'TAG030', anggota_id: 'AGT015', bulan: '2024-05', jenis_iuran_id: 'JEN02', nominal: 20000, status: 'Lunas', tgl_bayar: '2024-05-20', bukti: 'Transfer', rt_id: 'RT05' },
             ],
             pengeluaran: [
+                // RT01
                 { id: 'OUT001', tanggal: '2024-05-02', kategori: 'Kebersihan', deskripsi: 'Bayar petugas kebersihan', jumlah: 300000, rt_id: 'RT01' },
                 { id: 'OUT002', tanggal: '2024-05-15', kategori: 'Keamanan', deskripsi: 'Beli perlengkapan satpam', jumlah: 150000, rt_id: 'RT01' },
-                { id: 'OUT003', tanggal: '2024-05-20', kategori: 'Acara', deskripsi: 'Konsumsi arisan', jumlah: 250000, rt_id: 'RT01' },
+                // RT02
+                { id: 'OUT003', tanggal: '2024-05-05', kategori: 'Acara', deskripsi: 'Konsumsi rapat warga', jumlah: 200000, rt_id: 'RT02' },
+                { id: 'OUT004', tanggal: '2024-05-18', kategori: 'Infrastruktur', deskripsi: 'Perbaikan lampu jalan', jumlah: 450000, rt_id: 'RT02' },
+                // RT03
+                { id: 'OUT005', tanggal: '2024-05-08', kategori: 'Kebersihan', deskripsi: 'Beli alat kebersihan', jumlah: 180000, rt_id: 'RT03' },
+                { id: 'OUT006', tanggal: '2024-05-22', kategori: 'Keamanan', deskripsi: 'Gaji satpam bulanan', jumlah: 600000, rt_id: 'RT03' },
+                // RT04
+                { id: 'OUT007', tanggal: '2024-05-10', kategori: 'Acara', deskripsi: 'Konsumsi arisan bulanan', jumlah: 350000, rt_id: 'RT04' },
+                { id: 'OUT008', tanggal: '2024-05-25', kategori: 'Lainnya', deskripsi: 'Biaya administrasi', jumlah: 100000, rt_id: 'RT04' },
+                // RT05
+                { id: 'OUT009', tanggal: '2024-05-12', kategori: 'Kebersihan', deskripsi: 'Bayar petugas kebersihan', jumlah: 250000, rt_id: 'RT05' },
+                { id: 'OUT010', tanggal: '2024-05-28', kategori: 'Infrastruktur', deskripsi: 'Cat pagar komplek', jumlah: 500000, rt_id: 'RT05' },
             ],
             jenisIuran: [
                 { id: 'JEN01', nama_iuran: 'Iuran Wajib', nominal_default: 50000 },
@@ -519,6 +573,9 @@
             masterRT: [
                 { rt_id: 'RT01', nama_rt: 'RT 01 Griya Asri', ketua_rt: 'Pak Budi', pin_bendahara: '1234' },
                 { rt_id: 'RT02', nama_rt: 'RT 02 Griya Asri', ketua_rt: 'Pak Ahmad', pin_bendahara: '1234' },
+                { rt_id: 'RT03', nama_rt: 'RT 03 Griya Asri', ketua_rt: 'Pak Joko', pin_bendahara: '1234' },
+                { rt_id: 'RT04', nama_rt: 'RT 04 Griya Asri', ketua_rt: 'Pak Gunawan', pin_bendahara: '1234' },
+                { rt_id: 'RT05', nama_rt: 'RT 05 Griya Asri', ketua_rt: 'Pak Eko', pin_bendahara: '1234' },
             ]
         };
 
@@ -883,6 +940,20 @@
                     </div>
                 </div>
             `;
+
+            // Update summary counts
+            const pending = tagihan.filter(t => t.status === 'Belum' && t.bukti && t.bukti !== '').length;
+            const belumLapor = tagihan.filter(t => t.status === 'Belum' && (!t.bukti || t.bukti === '')).length;
+            const totalBelum = tagihan.filter(t => t.status === 'Belum').length;
+
+            setTimeout(() => {
+                const elPending = document.getElementById('pendingCount');
+                const elBelum = document.getElementById('belumLaporCount');
+                const elTotal = document.getElementById('totalBelumCount');
+                if (elPending) elPending.textContent = pending;
+                if (elBelum) elBelum.textContent = belumLapor;
+                if (elTotal) elTotal.textContent = totalBelum;
+            }, 0);
         }
 
         async function renderAnggota(container) {
@@ -929,6 +1000,20 @@
                     ` : ''}
                 </div>
             `;
+
+            // Update summary counts
+            const pending = tagihan.filter(t => t.status === 'Belum' && t.bukti && t.bukti !== '').length;
+            const belumLapor = tagihan.filter(t => t.status === 'Belum' && (!t.bukti || t.bukti === '')).length;
+            const totalBelum = tagihan.filter(t => t.status === 'Belum').length;
+
+            setTimeout(() => {
+                const elPending = document.getElementById('pendingCount');
+                const elBelum = document.getElementById('belumLaporCount');
+                const elTotal = document.getElementById('totalBelumCount');
+                if (elPending) elPending.textContent = pending;
+                if (elBelum) elBelum.textContent = belumLapor;
+                if (elTotal) elTotal.textContent = totalBelum;
+            }, 0);
         }
 
         async function renderTagihan(container) {
@@ -944,6 +1029,23 @@
                     <input type="month" id="filterBulan" value="${bulan}" onchange="renderTagihan(document.getElementById('mainContent'))">
                     <button class="btn btn-primary btn-sm" onclick="openModal('modalTagihan')">+ Buat Tagihan Bulanan</button>
                 </div>
+                <div class="summary-box" style="background: #fffbeb; border-color: #fcd34d;">
+                    <h4 style="color: #92400e;">📢 Tagihan Menunggu Verifikasi</h4>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <div class="value" id="pendingCount">0</div>
+                            <div class="label">Menunggu Verifikasi</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="value" id="belumLaporCount">0</div>
+                            <div class="label">Belum Dilapor</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="value" id="totalBelumCount">0</div>
+                            <div class="label">Total Belum Lunas</div>
+                        </div>
+                    </div>
+                </div>
                 <div class="table-container">
                     <div class="table-header"><h3>📋 Daftar Tagihan</h3></div>
                     <table>
@@ -955,7 +1057,14 @@
                                     <td>${t.nama_anggota}</td>
                                     <td>${t.nama_iuran}</td>
                                     <td>${formatRupiah(t.nominal)}</td>
-                                    <td><span class="badge ${t.status === 'Lunas' ? 'badge-success' : 'badge-warning'}">${t.status}</span></td>
+                                    <td>
+                                    ${t.status === 'Lunas' 
+                                        ? '<span class="badge badge-success">Lunas</span>' 
+                                        : t.bukti && t.bukti !== '' 
+                                            ? '<span class="badge badge-warning">Belum (📢 Dilapor)</span>' 
+                                            : '<span class="badge badge-gray">Belum</span>'
+                                    }
+                                </td>
                                     <td>${t.tgl_bayar ? formatDate(t.tgl_bayar) : '-'}</td>
                                     <td>
                                         ${t.status === 'Belum' ? `<button class="btn btn-success btn-sm" onclick="verifikasiBayar('${t.id}')">✓ Verifikasi</button>` : '<span style="color: var(--success); font-size: 12px;">✓ Terverifikasi</span>'}
@@ -966,6 +1075,20 @@
                     </table>
                 </div>
             `;
+
+            // Update summary counts
+            const pending = tagihan.filter(t => t.status === 'Belum' && t.bukti && t.bukti !== '').length;
+            const belumLapor = tagihan.filter(t => t.status === 'Belum' && (!t.bukti || t.bukti === '')).length;
+            const totalBelum = tagihan.filter(t => t.status === 'Belum').length;
+
+            setTimeout(() => {
+                const elPending = document.getElementById('pendingCount');
+                const elBelum = document.getElementById('belumLaporCount');
+                const elTotal = document.getElementById('totalBelumCount');
+                if (elPending) elPending.textContent = pending;
+                if (elBelum) elBelum.textContent = belumLapor;
+                if (elTotal) elTotal.textContent = totalBelum;
+            }, 0);
         }
 
         async function renderPengeluaran(container) {
@@ -997,6 +1120,20 @@
                     </table>
                 </div>
             `;
+
+            // Update summary counts
+            const pending = tagihan.filter(t => t.status === 'Belum' && t.bukti && t.bukti !== '').length;
+            const belumLapor = tagihan.filter(t => t.status === 'Belum' && (!t.bukti || t.bukti === '')).length;
+            const totalBelum = tagihan.filter(t => t.status === 'Belum').length;
+
+            setTimeout(() => {
+                const elPending = document.getElementById('pendingCount');
+                const elBelum = document.getElementById('belumLaporCount');
+                const elTotal = document.getElementById('totalBelumCount');
+                if (elPending) elPending.textContent = pending;
+                if (elBelum) elBelum.textContent = belumLapor;
+                if (elTotal) elTotal.textContent = totalBelum;
+            }, 0);
         }
 
         async function renderLaporan(container) {
@@ -1024,6 +1161,20 @@
                     <div id="loContent"></div>
                 </div>
             `;
+
+            // Update summary counts
+            const pending = tagihan.filter(t => t.status === 'Belum' && t.bukti && t.bukti !== '').length;
+            const belumLapor = tagihan.filter(t => t.status === 'Belum' && (!t.bukti || t.bukti === '')).length;
+            const totalBelum = tagihan.filter(t => t.status === 'Belum').length;
+
+            setTimeout(() => {
+                const elPending = document.getElementById('pendingCount');
+                const elBelum = document.getElementById('belumLaporCount');
+                const elTotal = document.getElementById('totalBelumCount');
+                if (elPending) elPending.textContent = pending;
+                if (elBelum) elBelum.textContent = belumLapor;
+                if (elTotal) elTotal.textContent = totalBelum;
+            }, 0);
         }
 
         // ============================================
@@ -1048,7 +1199,14 @@
                                     <td>${t.bulan}</td>
                                     <td>${t.nama_iuran}</td>
                                     <td>${formatRupiah(t.nominal)}</td>
-                                    <td><span class="badge ${t.status === 'Lunas' ? 'badge-success' : 'badge-warning'}">${t.status}</span></td>
+                                    <td>
+                                    ${t.status === 'Lunas' 
+                                        ? '<span class="badge badge-success">Lunas</span>' 
+                                        : t.bukti && t.bukti !== '' 
+                                            ? '<span class="badge badge-warning">Belum (📢 Dilapor)</span>' 
+                                            : '<span class="badge badge-gray">Belum</span>'
+                                    }
+                                </td>
                                     <td>
                                         ${t.status === 'Belum' ? `<button class="btn btn-warning btn-sm" onclick="laporBayar('${t.id}')">📢 Lapor Bayar</button>` : '<span style="color: var(--success);">✓ Lunas</span>'}
                                     </td>
@@ -1058,6 +1216,20 @@
                     </table>
                 </div>
             `;
+
+            // Update summary counts
+            const pending = tagihan.filter(t => t.status === 'Belum' && t.bukti && t.bukti !== '').length;
+            const belumLapor = tagihan.filter(t => t.status === 'Belum' && (!t.bukti || t.bukti === '')).length;
+            const totalBelum = tagihan.filter(t => t.status === 'Belum').length;
+
+            setTimeout(() => {
+                const elPending = document.getElementById('pendingCount');
+                const elBelum = document.getElementById('belumLaporCount');
+                const elTotal = document.getElementById('totalBelumCount');
+                if (elPending) elPending.textContent = pending;
+                if (elBelum) elBelum.textContent = belumLapor;
+                if (elTotal) elTotal.textContent = totalBelum;
+            }, 0);
         }
 
         async function renderLaporanKas(container) {
@@ -1091,6 +1263,20 @@
                     </div>
                 </div>
             `;
+
+            // Update summary counts
+            const pending = tagihan.filter(t => t.status === 'Belum' && t.bukti && t.bukti !== '').length;
+            const belumLapor = tagihan.filter(t => t.status === 'Belum' && (!t.bukti || t.bukti === '')).length;
+            const totalBelum = tagihan.filter(t => t.status === 'Belum').length;
+
+            setTimeout(() => {
+                const elPending = document.getElementById('pendingCount');
+                const elBelum = document.getElementById('belumLaporCount');
+                const elTotal = document.getElementById('totalBelumCount');
+                if (elPending) elPending.textContent = pending;
+                if (elBelum) elBelum.textContent = belumLapor;
+                if (elTotal) elTotal.textContent = totalBelum;
+            }, 0);
         }
 
         // ============================================

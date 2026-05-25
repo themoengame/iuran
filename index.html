@@ -119,9 +119,6 @@
         }
         .table-header h3 { font-size: 16px; font-weight: 600; }
         .table-actions { display: flex; gap: 8px; }
-        .search-box { position: relative; }
-        .search-box input { padding: 8px 12px 8px 36px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 13px; width: 220px; }
-        .search-box svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--gray-600); }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px 20px; text-align: left; font-size: 14px; }
         th { background: var(--gray-100); font-weight: 600; color: var(--gray-600); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -189,13 +186,14 @@
         .summary-item .label { font-size: 12px; color: var(--gray-600); }
         .progress-bar { width: 100%; height: 8px; background: var(--gray-200); border-radius: 4px; overflow: hidden; margin-top: 8px; }
         .progress-fill { height: 100%; background: var(--success); border-radius: 4px; transition: width 0.5s ease; }
+        .config-box { margin-bottom: 20px; padding: 16px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; font-size: 13px; }
+        .config-box code { background: #e0f2fe; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
         @media (max-width: 768px) {
             .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
             .sidebar.open { transform: translateX(0); }
             .main-content { margin-left: 0; padding: 16px; }
             .cards-grid { grid-template-columns: 1fr; }
             .table-header { flex-direction: column; gap: 12px; align-items: stretch; }
-            .search-box input { width: 100%; }
         }
     </style>
 <base target="_blank">
@@ -207,22 +205,33 @@
         <p>Memuat data...</p>
     </div>
 
-    <!-- ===== LOGIN PAGE ===== -->
+    <!-- LOGIN PAGE -->
     <div class="login-container" id="loginPage">
         <div class="login-box">
             <div class="login-logo">
                 <h1>🏘️ Sistem Iuran RT</h1>
                 <p>Kelola iuran warga dengan mudah</p>
             </div>
+
+            <div class="config-box">
+                <strong>⚙️ Konfigurasi GAS:</strong><br>
+                1. Buka Code.gs di Google Apps Script<br>
+                2. Ganti <code>YOUR_SPREADSHEET_ID</code> dengan ID Spreadsheet<br>
+                3. Deploy sebagai Web App (Deploy → New Deployment)<br>
+                4. Set access ke <code>"Anyone"</code> atau <code>"Anyone, even anonymous"</code><br>
+                5. Copy URL, paste di bawah:<br>
+                <input type="text" id="gasUrlInput" placeholder="https://script.google.com/macros/s/XXXX/exec" 
+                       style="width: 100%; margin-top: 8px; padding: 8px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 13px;">
+                <button type="button" class="btn btn-sm" style="margin-top: 8px; background: #0284c7; color: white;" onclick="saveGasUrl()">💾 Simpan URL</button>
+                <button type="button" class="btn btn-sm" style="margin-top: 8px; background: #059669; color: white;" onclick="testConnection()">🧪 Test Koneksi</button>
+                <div id="gasStatus" style="margin-top: 8px; font-size: 12px;"></div>
+            </div>
+
             <div class="role-selector">
                 <button class="role-btn active" onclick="setRole('bendahara')" id="btnBendahara">👤 Bendahara</button>
                 <button class="role-btn" onclick="setRole('anggota')" id="btnAnggota">🏠 Anggota</button>
             </div>
-            <div style="margin-bottom: 16px; padding: 12px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; font-size: 13px;">
-                <strong>⚙️ Konfigurasi GAS:</strong><br>
-                Edit file ini, cari <code>GAS_URL</code> dan ganti dengan URL deployment GAS Anda.<br>
-                <button type="button" class="btn btn-sm" style="margin-top: 8px; background: #0284c7; color: white;" onclick="testConnection()">🧪 Test Koneksi GAS</button>
-            </div>
+
             <form id="formBendahara" onsubmit="loginBendahara(event)">
                 <div class="form-group">
                     <label>Pilih RT</label>
@@ -242,6 +251,7 @@
                 <p class="error-msg" id="errorBendahara">PIN salah atau RT tidak ditemukan</p>
                 <button type="submit" class="btn btn-primary">Masuk sebagai Bendahara</button>
             </form>
+
             <form id="formAnggota" class="hidden" onsubmit="loginAnggota(event)">
                 <div class="form-group">
                     <label>Nomor WhatsApp</label>
@@ -257,7 +267,7 @@
         </div>
     </div>
 
-    <!-- ===== APP CONTAINER ===== -->
+    <!-- APP CONTAINER -->
     <div class="app-container" id="appContainer">
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
@@ -312,23 +322,14 @@
         <main class="main-content" id="mainContent"></main>
     </div>
 
-    <!-- ===== MODALS ===== -->
+    <!-- MODALS -->
     <div class="modal-overlay" id="modalAnggota">
         <div class="modal">
-            <div class="modal-header">
-                <h3>Tambah Anggota Baru</h3>
-                <button class="modal-close" onclick="closeModal('modalAnggota')">&times;</button>
-            </div>
+            <div class="modal-header"><h3>Tambah Anggota Baru</h3><button class="modal-close" onclick="closeModal('modalAnggota')">&times;</button></div>
             <form onsubmit="tambahAnggota(event)">
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label>Nama Lengkap</label>
-                        <input type="text" id="namaAnggota" required placeholder="Nama anggota">
-                    </div>
-                    <div class="form-group">
-                        <label>Nomor WhatsApp</label>
-                        <input type="tel" id="waAnggota" placeholder="08123456789">
-                    </div>
+                    <div class="form-group"><label>Nama Lengkap</label><input type="text" id="namaAnggota" required placeholder="Nama anggota"></div>
+                    <div class="form-group"><label>Nomor WhatsApp</label><input type="tel" id="waAnggota" placeholder="08123456789"></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('modalAnggota')">Batal</button>
@@ -340,18 +341,11 @@
 
     <div class="modal-overlay" id="modalPengeluaran">
         <div class="modal">
-            <div class="modal-header">
-                <h3>Catat Pengeluaran</h3>
-                <button class="modal-close" onclick="closeModal('modalPengeluaran')">&times;</button>
-            </div>
+            <div class="modal-header"><h3>Catat Pengeluaran</h3><button class="modal-close" onclick="closeModal('modalPengeluaran')">&times;</button></div>
             <form onsubmit="tambahPengeluaran(event)">
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label>Tanggal</label>
-                        <input type="date" id="tglPengeluaran" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Kategori</label>
+                    <div class="form-group"><label>Tanggal</label><input type="date" id="tglPengeluaran" required></div>
+                    <div class="form-group"><label>Kategori</label>
                         <select id="kategoriPengeluaran" required>
                             <option value="">Pilih Kategori</option>
                             <option value="Kebersihan">Kebersihan</option>
@@ -361,14 +355,8 @@
                             <option value="Lainnya">Lainnya</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label>Deskripsi</label>
-                        <input type="text" id="deskripsiPengeluaran" required placeholder="Keterangan pengeluaran">
-                    </div>
-                    <div class="form-group">
-                        <label>Jumlah (Rp)</label>
-                        <input type="number" id="jumlahPengeluaran" required placeholder="0" min="0">
-                    </div>
+                    <div class="form-group"><label>Deskripsi</label><input type="text" id="deskripsiPengeluaran" required placeholder="Keterangan pengeluaran"></div>
+                    <div class="form-group"><label>Jumlah (Rp)</label><input type="number" id="jumlahPengeluaran" required placeholder="0" min="0"></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('modalPengeluaran')">Batal</button>
@@ -380,19 +368,11 @@
 
     <div class="modal-overlay" id="modalTagihan">
         <div class="modal">
-            <div class="modal-header">
-                <h3>Buat Tagihan Bulanan</h3>
-                <button class="modal-close" onclick="closeModal('modalTagihan')">&times;</button>
-            </div>
+            <div class="modal-header"><h3>Buat Tagihan Bulanan</h3><button class="modal-close" onclick="closeModal('modalTagihan')">&times;</button></div>
             <form onsubmit="buatTagihan(event)">
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label>Bulan</label>
-                        <input type="month" id="bulanTagihan" required>
-                    </div>
-                    <p style="font-size: 13px; color: var(--gray-600);">
-                        Sistem akan membuat tagihan untuk semua anggota aktif berdasarkan jenis iuran yang terdaftar.
-                    </p>
+                    <div class="form-group"><label>Bulan</label><input type="month" id="bulanTagihan" required></div>
+                    <p style="font-size: 13px; color: var(--gray-600);">Sistem akan membuat tagihan untuk semua anggota aktif berdasarkan jenis iuran yang terdaftar.</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('modalTagihan')">Batal</button>
@@ -404,21 +384,9 @@
 
     <script>
         // ============================================
-        // CONFIGURATION - WAJIB GANTI URL INI
+        // CONFIGURATION
         // ============================================
-        // 1. Deploy GAS sebagai Web App (Deploy > New Deployment > Web App)
-        // 2. Copy URL yang dihasilkan (format: https://script.google.com/macros/s/XXXX/exec)
-        // 3. Paste URL di bawah ini, ganti YOUR_SCRIPT_ID
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwWWCRXWuH7GJFFpIOaLKKPG_GgKz881kUTkQ6zladr8oh3qXNp89vmCer04JoNDOGV/exec';
-        // Ganti YOUR_SCRIPT_ID dengan ID deployment GAS Anda
-
-        // ============================================
-        // STATE MANAGEMENT
-        // ============================================
-        let currentUser = null;
-        let currentRole = 'bendahara';
-        let currentPage = 'dashboard';
-        let currentData = {};
+        let GAS_URL = localStorage.getItem('gas_url') || '';
 
         // ============================================
         // UTILITY FUNCTIONS
@@ -461,12 +429,21 @@
         }
 
         // ============================================
-        // API CALLS (with CORS handling)
+        // JSONP API CALL - Solusi CORS untuk GAS
         // ============================================
-        async function apiCall(action, params = {}) {
-            showLoading(true);
-            try {
-                // Build URL with query parameters (GET method to avoid preflight CORS issues)
+        function apiCall(action, params = {}) {
+            return new Promise((resolve, reject) => {
+                if (!GAS_URL || GAS_URL === '') {
+                    reject({ status: 'error', message: 'GAS_URL belum diatur. Masukkan URL GAS di konfigurasi.' });
+                    return;
+                }
+
+                showLoading(true);
+
+                // Buat nama callback unik
+                const callbackName = 'gasCallback_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+                // Buat URL dengan parameter
                 const url = new URL(GAS_URL);
                 url.searchParams.append('action', action);
                 Object.keys(params).forEach(key => {
@@ -475,54 +452,84 @@
                     }
                 });
 
-                // Use GET with query params to avoid CORS preflight issues
-                // Google Apps Script Web App handles GET well with CORS
-                const response = await fetch(url.toString(), {
-                    method: 'GET',
-                    mode: 'cors',
-                    headers: { 
-                        'Accept': 'application/json'
-                    }
-                });
+                // Tambahkan callback untuk JSONP
+                url.searchParams.append('callback', callbackName);
 
-                if (!response.ok) {
-                    throw new Error('Gagal terhubung ke server. Status: ' + response.status);
+                // Buat script tag untuk JSONP
+                const script = document.createElement('script');
+                script.src = url.toString();
+                script.async = true;
+
+                // Setup callback global
+                window[callbackName] = function(data) {
+                    showLoading(false);
+                    cleanup();
+                    resolve(data);
+                };
+
+                // Handle error
+                script.onerror = function() {
+                    showLoading(false);
+                    cleanup();
+                    reject({ status: 'error', message: 'Gagal terhubung ke GAS. Cek URL dan pastikan GAS sudah di-deploy dengan access "Anyone".' });
+                };
+
+                // Handle timeout
+                const timeout = setTimeout(function() {
+                    showLoading(false);
+                    cleanup();
+                    reject({ status: 'error', message: 'Timeout: GAS tidak merespons dalam 10 detik.' });
+                }, 10000);
+
+                function cleanup() {
+                    if (script.parentNode) script.parentNode.removeChild(script);
+                    delete window[callbackName];
+                    clearTimeout(timeout);
                 }
 
-                const text = await response.text();
-                let data;
-                try {
-                    data = JSON.parse(text);
-                } catch (e) {
-                    throw new Error('Response bukan JSON valid. Response: ' + text.substring(0, 200));
-                }
-
-                showLoading(false);
-                return data;
-            } catch (error) {
-                showLoading(false);
-                console.error('API Error:', error);
-                showToast('Error: ' + error.message, 'error');
-                return { status: 'error', message: error.message };
-            }
+                document.head.appendChild(script);
+            });
         }
 
-        // Fungsi untuk test koneksi ke GAS
-        async function testConnection() {
-            const result = await apiCall('test');
-            if (result.status === 'success') {
-                showToast('✅ Koneksi ke GAS berhasil! ' + result.message);
-            } else {
-                showToast('❌ Gagal terhubung ke GAS: ' + result.message, 'error');
+        // ============================================
+        // CONFIG FUNCTIONS
+        // ============================================
+        function saveGasUrl() {
+            const url = document.getElementById('gasUrlInput').value.trim();
+            if (!url) {
+                showToast('Masukkan URL GAS terlebih dahulu', 'error');
+                return;
             }
-            return result;
+            if (!url.includes('script.google.com')) {
+                showToast('URL harus dari script.google.com', 'error');
+                return;
+            }
+            GAS_URL = url;
+            localStorage.setItem('gas_url', url);
+            document.getElementById('gasStatus').innerHTML = '<span style="color: var(--success);">✅ URL tersimpan!</span>';
+            showToast('URL GAS berhasil disimpan');
+        }
+
+        async function testConnection() {
+            try {
+                const result = await apiCall('test');
+                if (result.status === 'success') {
+                    document.getElementById('gasStatus').innerHTML = '<span style="color: var(--success);">✅ ' + result.message + '</span>';
+                    showToast('✅ Koneksi ke GAS berhasil!');
+                } else {
+                    document.getElementById('gasStatus').innerHTML = '<span style="color: var(--danger);">❌ ' + result.message + '</span>';
+                    showToast('❌ ' + result.message, 'error');
+                }
+            } catch (error) {
+                document.getElementById('gasStatus').innerHTML = '<span style="color: var(--danger);">❌ ' + error.message + '</span>';
+                showToast('❌ ' + error.message, 'error');
+            }
         }
 
         // ============================================
         // AUTH FUNCTIONS
         // ============================================
         function setRole(role) {
-            currentRole = role;
             document.getElementById('btnBendahara').classList.toggle('active', role === 'bendahara');
             document.getElementById('btnAnggota').classList.toggle('active', role === 'anggota');
             document.getElementById('formBendahara').classList.toggle('hidden', role !== 'bendahara');
@@ -533,21 +540,25 @@
             e.preventDefault();
             const rt = document.getElementById('rtSelect').value;
             const pin = document.getElementById('pinBendahara').value;
-            const result = await apiCall('loginBendahara', { rt, pin });
 
-            if (result.status === 'error') {
-                document.getElementById('errorBendahara').textContent = result.message || 'PIN salah atau RT tidak ditemukan';
-                document.getElementById('errorBendahara').classList.add('show');
-                return;
-            }
-
-            if (result.valid) {
-                currentUser = { role: 'bendahara', rt: rt, nama_rt: result.nama_rt };
-                localStorage.setItem('iuran_user', JSON.stringify(currentUser));
-                showToast('Login berhasil! Selamat datang Bendahara ' + rt);
-                initApp();
-            } else {
-                document.getElementById('errorBendahara').textContent = result.message || 'PIN salah atau RT tidak ditemukan';
+            try {
+                const result = await apiCall('loginBendahara', { rt, pin });
+                if (result.status === 'error') {
+                    document.getElementById('errorBendahara').textContent = result.message || 'PIN salah atau RT tidak ditemukan';
+                    document.getElementById('errorBendahara').classList.add('show');
+                    return;
+                }
+                if (result.valid) {
+                    currentUser = { role: 'bendahara', rt: rt, nama_rt: result.nama_rt };
+                    localStorage.setItem('iuran_user', JSON.stringify(currentUser));
+                    showToast('Login berhasil! Selamat datang Bendahara ' + rt);
+                    initApp();
+                } else {
+                    document.getElementById('errorBendahara').textContent = result.message || 'PIN salah atau RT tidak ditemukan';
+                    document.getElementById('errorBendahara').classList.add('show');
+                }
+            } catch (error) {
+                document.getElementById('errorBendahara').textContent = error.message || 'Gagal terhubung ke server';
                 document.getElementById('errorBendahara').classList.add('show');
             }
         }
@@ -556,21 +567,25 @@
             e.preventDefault();
             const noWa = document.getElementById('noWa').value;
             const pin = document.getElementById('pinAnggota').value;
-            const result = await apiCall('loginAnggota', { noWa, pin });
 
-            if (result.status === 'error') {
-                document.getElementById('errorAnggota').textContent = result.message || 'Nomor WA atau PIN salah';
-                document.getElementById('errorAnggota').classList.add('show');
-                return;
-            }
-
-            if (result.valid) {
-                currentUser = { role: 'anggota', anggotaId: result.anggotaId, nama: result.nama, rt: result.rt };
-                localStorage.setItem('iuran_user', JSON.stringify(currentUser));
-                showToast('Login berhasil! Selamat datang ' + result.nama);
-                initApp();
-            } else {
-                document.getElementById('errorAnggota').textContent = result.message || 'Nomor WA atau PIN salah';
+            try {
+                const result = await apiCall('loginAnggota', { noWa, pin });
+                if (result.status === 'error') {
+                    document.getElementById('errorAnggota').textContent = result.message || 'Nomor WA atau PIN salah';
+                    document.getElementById('errorAnggota').classList.add('show');
+                    return;
+                }
+                if (result.valid) {
+                    currentUser = { role: 'anggota', anggotaId: result.anggotaId, nama: result.nama, rt: result.rt };
+                    localStorage.setItem('iuran_user', JSON.stringify(currentUser));
+                    showToast('Login berhasil! Selamat datang ' + result.nama);
+                    initApp();
+                } else {
+                    document.getElementById('errorAnggota').textContent = result.message || 'Nomor WA atau PIN salah';
+                    document.getElementById('errorAnggota').classList.add('show');
+                }
+            } catch (error) {
+                document.getElementById('errorAnggota').textContent = error.message || 'Gagal terhubung ke server';
                 document.getElementById('errorAnggota').classList.add('show');
             }
         }
@@ -589,11 +604,20 @@
                 currentUser = JSON.parse(saved);
                 initApp();
             }
+            // Load saved GAS URL
+            const savedUrl = localStorage.getItem('gas_url');
+            if (savedUrl) {
+                GAS_URL = savedUrl;
+                document.getElementById('gasUrlInput').value = savedUrl;
+            }
         }
 
         // ============================================
         // APP INITIALIZATION
         // ============================================
+        let currentUser = null;
+        let currentPage = 'dashboard';
+
         function initApp() {
             document.getElementById('loginPage').style.display = 'none';
             document.getElementById('appContainer').style.display = 'block';
@@ -626,265 +650,249 @@
         // PAGE RENDERERS - BENDAHARA
         // ============================================
         async function renderDashboard(container) {
-            const result = await apiCall('getDashboard', { rt: currentUser.rt });
-            const d = result.data;
-            container.innerHTML = `
-                <div class="page-header">
-                    <h1>Dashboard</h1>
-                    <p>Ringkasan keuangan ${currentUser.rt}</p>
-                </div>
-                <div class="cards-grid">
-                    <div class="card">
-                        <div class="card-header">
-                            <span class="card-title">Total Anggota Aktif</span>
-                            <div class="card-icon blue">👥</div>
-                        </div>
-                        <div class="card-value">${d.totalAnggota}</div>
-                        <div class="card-subtitle">Orang</div>
+            try {
+                const result = await apiCall('getDashboard', { rt: currentUser.rt });
+                if (result.status === 'error') {
+                    container.innerHTML = `<div class="empty-state">❌ ${result.message}</div>`;
+                    return;
+                }
+                const d = result.data;
+                container.innerHTML = `
+                    <div class="page-header">
+                        <h1>Dashboard</h1>
+                        <p>Ringkasan keuangan ${currentUser.rt}</p>
                     </div>
-                    <div class="card">
-                        <div class="card-header">
-                            <span class="card-title">Tagihan Bulan Ini</span>
-                            <div class="card-icon orange">📋</div>
-                        </div>
-                        <div class="card-value">${d.totalTagihan}</div>
-                        <div class="card-subtitle">${d.totalLunas} Lunas, ${d.totalBelum} Belum</div>
-                    </div>
-                    <div class="card">
-                        <div class="card-header">
-                            <span class="card-title">Kepatuhan</span>
-                            <div class="card-icon green">📊</div>
-                        </div>
-                        <div class="card-value">${d.persentaseKepatuhan}%</div>
-                        <div class="progress-bar"><div class="progress-fill" style="width: ${d.persentaseKepatuhan}%"></div></div>
-                    </div>
-                    <div class="card">
-                        <div class="card-header">
-                            <span class="card-title">Saldo Kas</span>
-                            <div class="card-icon ${d.saldoKas >= 0 ? 'green' : 'red'}">💰</div>
-                        </div>
-                        <div class="card-value">${formatRupiah(d.saldoKas)}</div>
-                        <div class="card-subtitle">Pemasukan: ${formatRupiah(d.totalPemasukan)} | Pengeluaran: ${formatRupiah(d.totalPengeluaran)}</div>
-                    </div>
-                </div>
-                <div class="table-container">
-                    <div class="table-header"><h3>📈 Statistik Pembayaran</h3></div>
-                    <div style="padding: 24px;">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-                            <div style="text-align: center; padding: 20px; background: #f0fdf4; border-radius: 8px;">
-                                <div style="font-size: 32px; font-weight: 700; color: var(--success);">${formatRupiah(d.totalPemasukan)}</div>
-                                <div style="font-size: 14px; color: var(--gray-600); margin-top: 8px;">Total Pemasukan</div>
+                    <div class="cards-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="card-title">Total Anggota Aktif</span>
+                                <div class="card-icon blue">👥</div>
                             </div>
-                            <div style="text-align: center; padding: 20px; background: #fef2f2; border-radius: 8px;">
-                                <div style="font-size: 32px; font-weight: 700; color: var(--danger);">${formatRupiah(d.totalPengeluaran)}</div>
-                                <div style="font-size: 14px; color: var(--gray-600); margin-top: 8px;">Total Pengeluaran</div>
+                            <div class="card-value">${d.totalAnggota}</div>
+                            <div class="card-subtitle">Orang</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="card-title">Tagihan Bulan Ini</span>
+                                <div class="card-icon orange">📋</div>
                             </div>
-                            <div style="text-align: center; padding: 20px; background: #eff6ff; border-radius: 8px;">
-                                <div style="font-size: 32px; font-weight: 700; color: var(--primary);">${d.totalLunas}</div>
-                                <div style="font-size: 14px; color: var(--gray-600); margin-top: 8px;">Tagihan Lunas</div>
+                            <div class="card-value">${d.totalTagihan}</div>
+                            <div class="card-subtitle">${d.totalLunas} Lunas, ${d.totalBelum} Belum</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="card-title">Kepatuhan</span>
+                                <div class="card-icon green">📊</div>
                             </div>
-                            <div style="text-align: center; padding: 20px; background: #fffbeb; border-radius: 8px;">
-                                <div style="font-size: 32px; font-weight: 700; color: var(--warning);">${d.totalBelum}</div>
-                                <div style="font-size: 14px; color: var(--gray-600); margin-top: 8px;">Tagihan Belum Bayar</div>
+                            <div class="card-value">${d.persentaseKepatuhan}%</div>
+                            <div class="progress-bar"><div class="progress-fill" style="width: ${d.persentaseKepatuhan}%"></div></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="card-title">Saldo Kas</span>
+                                <div class="card-icon ${d.saldoKas >= 0 ? 'green' : 'red'}">💰</div>
+                            </div>
+                            <div class="card-value">${formatRupiah(d.saldoKas)}</div>
+                            <div class="card-subtitle">Pemasukan: ${formatRupiah(d.totalPemasukan)} | Pengeluaran: ${formatRupiah(d.totalPengeluaran)}</div>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <div class="table-header"><h3>📈 Statistik Pembayaran</h3></div>
+                        <div style="padding: 24px;">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                                <div style="text-align: center; padding: 20px; background: #f0fdf4; border-radius: 8px;">
+                                    <div style="font-size: 32px; font-weight: 700; color: var(--success);">${formatRupiah(d.totalPemasukan)}</div>
+                                    <div style="font-size: 14px; color: var(--gray-600); margin-top: 8px;">Total Pemasukan</div>
+                                </div>
+                                <div style="text-align: center; padding: 20px; background: #fef2f2; border-radius: 8px;">
+                                    <div style="font-size: 32px; font-weight: 700; color: var(--danger);">${formatRupiah(d.totalPengeluaran)}</div>
+                                    <div style="font-size: 14px; color: var(--gray-600); margin-top: 8px;">Total Pengeluaran</div>
+                                </div>
+                                <div style="text-align: center; padding: 20px; background: #eff6ff; border-radius: 8px;">
+                                    <div style="font-size: 32px; font-weight: 700; color: var(--primary);">${d.totalLunas}</div>
+                                    <div style="font-size: 14px; color: var(--gray-600); margin-top: 8px;">Tagihan Lunas</div>
+                                </div>
+                                <div style="text-align: center; padding: 20px; background: #fffbeb; border-radius: 8px;">
+                                    <div style="font-size: 32px; font-weight: 700; color: var(--warning);">${d.totalBelum}</div>
+                                    <div style="font-size: 14px; color: var(--gray-600); margin-top: 8px;">Tagihan Belum Bayar</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            `;
-
-            // Update summary counts
-            const pending = tagihan.filter(t => t.status === 'Belum' && t.bukti && t.bukti !== '').length;
-            const belumLapor = tagihan.filter(t => t.status === 'Belum' && (!t.bukti || t.bukti === '')).length;
-            const totalBelum = tagihan.filter(t => t.status === 'Belum').length;
-
-            setTimeout(() => {
-                const elPending = document.getElementById('pendingCount');
-                const elBelum = document.getElementById('belumLaporCount');
-                const elTotal = document.getElementById('totalBelumCount');
-                if (elPending) elPending.textContent = pending;
-                if (elBelum) elBelum.textContent = belumLapor;
-                if (elTotal) elTotal.textContent = totalBelum;
-            }, 0);
+                `;
+            } catch (error) {
+                container.innerHTML = `<div class="empty-state">❌ Gagal memuat dashboard: ${error.message}</div>`;
+            }
         }
 
         async function renderAnggota(container) {
-            const result = await apiCall('getAnggota', { rt: currentUser.rt, page: 1 });
-            const anggota = result.data;
-            container.innerHTML = `
-                <div class="page-header">
-                    <h1>Kelola Anggota</h1>
-                    <p>Daftar anggota ${currentUser.rt}</p>
-                </div>
-                <div class="table-container">
-                    <div class="table-header">
-                        <h3>👥 Daftar Anggota</h3>
-                        <div class="table-actions">
-                            <button class="btn btn-primary btn-sm" onclick="openModal('modalAnggota')">+ Tambah Anggota</button>
-                        </div>
+            try {
+                const result = await apiCall('getAnggota', { rt: currentUser.rt, page: 1 });
+                if (result.status === 'error') {
+                    container.innerHTML = `<div class="empty-state">❌ ${result.message}</div>`;
+                    return;
+                }
+                const anggota = result.data;
+                container.innerHTML = `
+                    <div class="page-header">
+                        <h1>Kelola Anggota</h1>
+                        <p>Daftar anggota ${currentUser.rt}</p>
                     </div>
-                    <table>
-                        <thead><tr><th>ID</th><th>Nama</th><th>No. WA</th><th>Status</th><th>Tgl Daftar</th><th>Aksi</th></tr></thead>
-                        <tbody>
-                            ${anggota.length === 0 ? '<tr><td colspan="6" class="text-center">Belum ada anggota</td></tr>' : 
-                            anggota.map(a => `
-                                <tr>
-                                    <td>${a.id}</td>
-                                    <td><strong>${a.nama}</strong></td>
-                                    <td>${a.no_wa || '-'}</td>
-                                    <td><span class="badge ${a.status === 'aktif' ? 'badge-success' : 'badge-gray'}">${a.status}</span></td>
-                                    <td>${formatDate(a.tgl_daftar)}</td>
-                                    <td>
-                                        <div class="action-btns">
-                                            <button class="btn-icon" onclick="hapusAnggota('${a.id}')" title="Hapus">🗑️</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                    ${result.totalPages > 1 ? `
-                        <div class="pagination">
-                            <button class="page-btn" ${1 === 1 ? 'disabled' : ''}>Prev</button>
-                            ${Array.from({length: result.totalPages}, (_, i) => `<button class="page-btn ${i+1 === 1 ? 'active' : ''}">${i+1}</button>`).join('')}
-                            <button class="page-btn" ${1 === result.totalPages ? 'disabled' : ''}>Next</button>
+                    <div class="table-container">
+                        <div class="table-header">
+                            <h3>👥 Daftar Anggota</h3>
+                            <div class="table-actions">
+                                <button class="btn btn-primary btn-sm" onclick="openModal('modalAnggota')">+ Tambah Anggota</button>
+                            </div>
                         </div>
-                    ` : ''}
-                </div>
-            `;
-
-            // Update summary counts
-            const pending = tagihan.filter(t => t.status === 'Belum' && t.bukti && t.bukti !== '').length;
-            const belumLapor = tagihan.filter(t => t.status === 'Belum' && (!t.bukti || t.bukti === '')).length;
-            const totalBelum = tagihan.filter(t => t.status === 'Belum').length;
-
-            setTimeout(() => {
-                const elPending = document.getElementById('pendingCount');
-                const elBelum = document.getElementById('belumLaporCount');
-                const elTotal = document.getElementById('totalBelumCount');
-                if (elPending) elPending.textContent = pending;
-                if (elBelum) elBelum.textContent = belumLapor;
-                if (elTotal) elTotal.textContent = totalBelum;
-            }, 0);
+                        <table>
+                            <thead><tr><th>ID</th><th>Nama</th><th>No. WA</th><th>Status</th><th>Tgl Daftar</th><th>Aksi</th></tr></thead>
+                            <tbody>
+                                ${anggota.length === 0 ? '<tr><td colspan="6" class="text-center">Belum ada anggota</td></tr>' : 
+                                anggota.map(a => `
+                                    <tr>
+                                        <td>${a.id}</td>
+                                        <td><strong>${a.nama}</strong></td>
+                                        <td>${a.no_wa || '-'}</td>
+                                        <td><span class="badge ${a.status === 'aktif' ? 'badge-success' : 'badge-gray'}">${a.status}</span></td>
+                                        <td>${formatDate(a.tgl_daftar)}</td>
+                                        <td>
+                                            <div class="action-btns">
+                                                <button class="btn-icon" onclick="hapusAnggota('${a.id}')" title="Hapus">🗑️</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        ${result.totalPages > 1 ? `
+                            <div class="pagination">
+                                <button class="page-btn" ${1 === 1 ? 'disabled' : ''}>Prev</button>
+                                ${Array.from({length: result.totalPages}, (_, i) => `<button class="page-btn ${i+1 === 1 ? 'active' : ''}">${i+1}</button>`).join('')}
+                                <button class="page-btn" ${1 === result.totalPages ? 'disabled' : ''}>Next</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            } catch (error) {
+                container.innerHTML = `<div class="empty-state">❌ Gagal memuat anggota: ${error.message}</div>`;
+            }
         }
 
         async function renderTagihan(container) {
             const bulan = document.getElementById('filterBulan')?.value || getBulanSekarang();
-            const result = await apiCall('getTagihan', { rt: currentUser.rt, bulan });
-            const tagihan = result.data;
-            container.innerHTML = `
-                <div class="page-header">
-                    <h1>Tagihan & Verifikasi</h1>
-                    <p>Kelola tagihan iuran ${currentUser.rt}</p>
-                </div>
-                <div class="filter-bar">
-                    <input type="month" id="filterBulan" value="${bulan}" onchange="renderTagihan(document.getElementById('mainContent'))">
-                    <button class="btn btn-primary btn-sm" onclick="openModal('modalTagihan')">+ Buat Tagihan Bulanan</button>
-                </div>
-                <div class="summary-box" style="background: #fffbeb; border-color: #fcd34d;">
-                    <h4 style="color: #92400e;">📢 Tagihan Menunggu Verifikasi</h4>
-                    <div class="summary-grid">
-                        <div class="summary-item">
-                            <div class="value" id="pendingCount">0</div>
-                            <div class="label">Menunggu Verifikasi</div>
-                        </div>
-                        <div class="summary-item">
-                            <div class="value" id="belumLaporCount">0</div>
-                            <div class="label">Belum Dilapor</div>
-                        </div>
-                        <div class="summary-item">
-                            <div class="value" id="totalBelumCount">0</div>
-                            <div class="label">Total Belum Lunas</div>
+            try {
+                const result = await apiCall('getTagihan', { rt: currentUser.rt, bulan });
+                if (result.status === 'error') {
+                    container.innerHTML = `<div class="empty-state">❌ ${result.message}</div>`;
+                    return;
+                }
+                const tagihan = result.data;
+                container.innerHTML = `
+                    <div class="page-header">
+                        <h1>Tagihan & Verifikasi</h1>
+                        <p>Kelola tagihan iuran ${currentUser.rt}</p>
+                    </div>
+                    <div class="filter-bar">
+                        <input type="month" id="filterBulan" value="${bulan}" onchange="renderTagihan(document.getElementById('mainContent'))">
+                        <button class="btn btn-primary btn-sm" onclick="openModal('modalTagihan')">+ Buat Tagihan Bulanan</button>
+                    </div>
+                    <div class="summary-box" style="background: #fffbeb; border-color: #fcd34d;">
+                        <h4 style="color: #92400e;">📢 Tagihan Menunggu Verifikasi</h4>
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <div class="value" id="pendingCount">${tagihan.filter(t => t.status === 'Belum' && t.bukti && t.bukti !== '').length}</div>
+                                <div class="label">Menunggu Verifikasi</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="value" id="belumLaporCount">${tagihan.filter(t => t.status === 'Belum' && (!t.bukti || t.bukti === '')).length}</div>
+                                <div class="label">Belum Dilapor</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="value" id="totalBelumCount">${tagihan.filter(t => t.status === 'Belum').length}</div>
+                                <div class="label">Total Belum Lunas</div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="table-container">
-                    <div class="table-header"><h3>📋 Daftar Tagihan</h3></div>
-                    <table>
-                        <thead><tr><th>Anggota</th><th>Jenis Iuran</th><th>Nominal</th><th>Status</th><th>Tgl Bayar</th><th>Aksi</th></tr></thead>
-                        <tbody>
-                            ${tagihan.length === 0 ? '<tr><td colspan="6" class="text-center">Belum ada tagihan untuk bulan ini</td></tr>' :
-                            tagihan.map(t => `
-                                <tr>
-                                    <td>${t.nama_anggota}</td>
-                                    <td>${t.nama_iuran}</td>
-                                    <td>${formatRupiah(t.nominal)}</td>
-                                    <td>
-                                    ${t.status === 'Lunas' 
-                                        ? '<span class="badge badge-success">Lunas</span>' 
-                                        : t.bukti && t.bukti !== '' 
-                                            ? '<span class="badge badge-warning">Belum (📢 Dilapor)</span>' 
-                                            : '<span class="badge badge-gray">Belum</span>'
-                                    }
-                                </td>
-                                    <td>${t.tgl_bayar ? formatDate(t.tgl_bayar) : '-'}</td>
-                                    <td>
-                                        ${t.status === 'Belum' ? `<button class="btn btn-success btn-sm" onclick="verifikasiBayar('${t.id}')">✓ Verifikasi</button>` : '<span style="color: var(--success); font-size: 12px;">✓ Terverifikasi</span>'}
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-
-            // Update summary counts
-            const pending = tagihan.filter(t => t.status === 'Belum' && t.bukti && t.bukti !== '').length;
-            const belumLapor = tagihan.filter(t => t.status === 'Belum' && (!t.bukti || t.bukti === '')).length;
-            const totalBelum = tagihan.filter(t => t.status === 'Belum').length;
-
-            setTimeout(() => {
-                const elPending = document.getElementById('pendingCount');
-                const elBelum = document.getElementById('belumLaporCount');
-                const elTotal = document.getElementById('totalBelumCount');
-                if (elPending) elPending.textContent = pending;
-                if (elBelum) elBelum.textContent = belumLapor;
-                if (elTotal) elTotal.textContent = totalBelum;
-            }, 0);
+                    <div class="table-container">
+                        <div class="table-header"><h3>📋 Daftar Tagihan</h3></div>
+                        <table>
+                            <thead><tr><th>Anggota</th><th>Jenis Iuran</th><th>Nominal</th><th>Status</th><th>Tgl Bayar</th><th>Aksi</th></tr></thead>
+                            <tbody>
+                                ${tagihan.length === 0 ? '<tr><td colspan="6" class="text-center">Belum ada tagihan untuk bulan ini</td></tr>' :
+                                tagihan.map(t => `
+                                    <tr>
+                                        <td>${t.nama_anggota}</td>
+                                        <td>${t.nama_iuran}</td>
+                                        <td>${formatRupiah(t.nominal)}</td>
+                                        <td>
+                                            ${t.status === 'Lunas' 
+                                                ? '<span class="badge badge-success">Lunas</span>' 
+                                                : t.bukti && t.bukti !== '' 
+                                                    ? '<span class="badge badge-warning">Belum (📢 Dilapor)</span>' 
+                                                    : '<span class="badge badge-gray">Belum</span>'
+                                            }
+                                        </td>
+                                        <td>${t.tgl_bayar ? formatDate(t.tgl_bayar) : '-'}</td>
+                                        <td>
+                                            ${t.status === 'Lunas' 
+                                                ? '<span style="color: var(--success); font-size: 12px;">✓ Terverifikasi</span>' 
+                                                : t.bukti && t.bukti !== '' 
+                                                    ? `<div style="display:flex;flex-direction:column;gap:4px;">
+                                                        <span class="badge badge-warning" style="font-size:10px;">📢 Menunggu Verifikasi</span>
+                                                        <button class="btn btn-success btn-sm" onclick="verifikasiBayar('${t.id}')">✓ Verifikasi</button>
+                                                       </div>`
+                                                    : `<button class="btn btn-success btn-sm" onclick="verifikasiBayar('${t.id}')">✓ Verifikasi</button>`
+                                            }
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } catch (error) {
+                container.innerHTML = `<div class="empty-state">❌ Gagal memuat tagihan: ${error.message}</div>`;
+            }
         }
 
         async function renderPengeluaran(container) {
-            const result = await apiCall('getPengeluaran', { rt: currentUser.rt });
-            const pengeluaran = result.data;
-            container.innerHTML = `
-                <div class="page-header">
-                    <h1>Pengeluaran</h1>
-                    <p>Catatan kas keluar ${currentUser.rt}</p>
-                </div>
-                <div class="table-container">
-                    <div class="table-header">
-                        <h3>💸 Riwayat Pengeluaran</h3>
-                        <button class="btn btn-primary btn-sm" onclick="openModal('modalPengeluaran')">+ Catat Pengeluaran</button>
+            try {
+                const result = await apiCall('getPengeluaran', { rt: currentUser.rt });
+                if (result.status === 'error') {
+                    container.innerHTML = `<div class="empty-state">❌ ${result.message}</div>`;
+                    return;
+                }
+                const pengeluaran = result.data;
+                container.innerHTML = `
+                    <div class="page-header">
+                        <h1>Pengeluaran</h1>
+                        <p>Catatan kas keluar ${currentUser.rt}</p>
                     </div>
-                    <table>
-                        <thead><tr><th>Tanggal</th><th>Kategori</th><th>Deskripsi</th><th>Jumlah</th></tr></thead>
-                        <tbody>
-                            ${pengeluaran.length === 0 ? '<tr><td colspan="4" class="text-center">Belum ada pengeluaran</td></tr>' :
-                            pengeluaran.map(p => `
-                                <tr>
-                                    <td>${formatDate(p.tanggal)}</td>
-                                    <td><span class="badge badge-gray">${p.kategori}</span></td>
-                                    <td>${p.deskripsi}</td>
-                                    <td><strong>${formatRupiah(p.jumlah)}</strong></td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-
-            // Update summary counts
-            const pending = tagihan.filter(t => t.status === 'Belum' && t.bukti && t.bukti !== '').length;
-            const belumLapor = tagihan.filter(t => t.status === 'Belum' && (!t.bukti || t.bukti === '')).length;
-            const totalBelum = tagihan.filter(t => t.status === 'Belum').length;
-
-            setTimeout(() => {
-                const elPending = document.getElementById('pendingCount');
-                const elBelum = document.getElementById('belumLaporCount');
-                const elTotal = document.getElementById('totalBelumCount');
-                if (elPending) elPending.textContent = pending;
-                if (elBelum) elBelum.textContent = belumLapor;
-                if (elTotal) elTotal.textContent = totalBelum;
-            }, 0);
+                    <div class="table-container">
+                        <div class="table-header">
+                            <h3>💸 Riwayat Pengeluaran</h3>
+                            <button class="btn btn-primary btn-sm" onclick="openModal('modalPengeluaran')">+ Catat Pengeluaran</button>
+                        </div>
+                        <table>
+                            <thead><tr><th>Tanggal</th><th>Kategori</th><th>Deskripsi</th><th>Jumlah</th></tr></thead>
+                            <tbody>
+                                ${pengeluaran.length === 0 ? '<tr><td colspan="4" class="text-center">Belum ada pengeluaran</td></tr>' :
+                                pengeluaran.map(p => `
+                                    <tr>
+                                        <td>${formatDate(p.tanggal)}</td>
+                                        <td><span class="badge badge-gray">${p.kategori}</span></td>
+                                        <td>${p.deskripsi}</td>
+                                        <td><strong>${formatRupiah(p.jumlah)}</strong></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } catch (error) {
+                container.innerHTML = `<div class="empty-state">❌ Gagal memuat pengeluaran: ${error.message}</div>`;
+            }
         }
 
         async function renderLaporan(container) {
@@ -912,122 +920,89 @@
                     <div id="loContent"></div>
                 </div>
             `;
-
-            // Update summary counts
-            const pending = tagihan.filter(t => t.status === 'Belum' && t.bukti && t.bukti !== '').length;
-            const belumLapor = tagihan.filter(t => t.status === 'Belum' && (!t.bukti || t.bukti === '')).length;
-            const totalBelum = tagihan.filter(t => t.status === 'Belum').length;
-
-            setTimeout(() => {
-                const elPending = document.getElementById('pendingCount');
-                const elBelum = document.getElementById('belumLaporCount');
-                const elTotal = document.getElementById('totalBelumCount');
-                if (elPending) elPending.textContent = pending;
-                if (elBelum) elBelum.textContent = belumLapor;
-                if (elTotal) elTotal.textContent = totalBelum;
-            }, 0);
         }
 
         // ============================================
         // PAGE RENDERERS - ANGGOTA
         // ============================================
         async function renderTagihanSaya(container) {
-            const result = await apiCall('getTagihanSaya', { anggotaId: currentUser.anggotaId });
-            const tagihan = result.data;
-            container.innerHTML = `
-                <div class="page-header">
-                    <h1>Tagihan Saya</h1>
-                    <p>Halo, ${currentUser.nama}! Berikut tagihan Anda</p>
-                </div>
-                <div class="table-container">
-                    <div class="table-header"><h3>📋 Tagihan Anda</h3></div>
-                    <table>
-                        <thead><tr><th>Bulan</th><th>Jenis Iuran</th><th>Nominal</th><th>Status</th><th>Aksi</th></tr></thead>
-                        <tbody>
-                            ${tagihan.length === 0 ? '<tr><td colspan="5" class="text-center">Belum ada tagihan</td></tr>' :
-                            tagihan.map(t => `
-                                <tr>
-                                    <td>${t.bulan}</td>
-                                    <td>${t.nama_iuran}</td>
-                                    <td>${formatRupiah(t.nominal)}</td>
-                                    <td>
-                                    ${t.status === 'Lunas' 
-                                        ? '<span class="badge badge-success">Lunas</span>' 
-                                        : t.bukti && t.bukti !== '' 
-                                            ? '<span class="badge badge-warning">Belum (📢 Dilapor)</span>' 
-                                            : '<span class="badge badge-gray">Belum</span>'
-                                    }
-                                </td>
-                                    <td>
-                                        ${t.status === 'Belum' ? `<button class="btn btn-warning btn-sm" onclick="laporBayar('${t.id}')">📢 Lapor Bayar</button>` : '<span style="color: var(--success);">✓ Lunas</span>'}
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-
-            // Update summary counts
-            const pending = tagihan.filter(t => t.status === 'Belum' && t.bukti && t.bukti !== '').length;
-            const belumLapor = tagihan.filter(t => t.status === 'Belum' && (!t.bukti || t.bukti === '')).length;
-            const totalBelum = tagihan.filter(t => t.status === 'Belum').length;
-
-            setTimeout(() => {
-                const elPending = document.getElementById('pendingCount');
-                const elBelum = document.getElementById('belumLaporCount');
-                const elTotal = document.getElementById('totalBelumCount');
-                if (elPending) elPending.textContent = pending;
-                if (elBelum) elBelum.textContent = belumLapor;
-                if (elTotal) elTotal.textContent = totalBelum;
-            }, 0);
+            try {
+                const result = await apiCall('getTagihanSaya', { anggotaId: currentUser.anggotaId });
+                if (result.status === 'error') {
+                    container.innerHTML = `<div class="empty-state">❌ ${result.message}</div>`;
+                    return;
+                }
+                const tagihan = result.data;
+                container.innerHTML = `
+                    <div class="page-header">
+                        <h1>Tagihan Saya</h1>
+                        <p>Halo, ${currentUser.nama}! Berikut tagihan Anda</p>
+                    </div>
+                    <div class="table-container">
+                        <div class="table-header"><h3>📋 Tagihan Anda</h3></div>
+                        <table>
+                            <thead><tr><th>Bulan</th><th>Jenis Iuran</th><th>Nominal</th><th>Status</th><th>Aksi</th></tr></thead>
+                            <tbody>
+                                ${tagihan.length === 0 ? '<tr><td colspan="5" class="text-center">Belum ada tagihan</td></tr>' :
+                                tagihan.map(t => `
+                                    <tr>
+                                        <td>${t.bulan}</td>
+                                        <td>${t.nama_iuran}</td>
+                                        <td>${formatRupiah(t.nominal)}</td>
+                                        <td><span class="badge ${t.status === 'Lunas' ? 'badge-success' : 'badge-warning'}">${t.status}</span></td>
+                                        <td>
+                                            ${t.status === 'Belum' ? `<button class="btn btn-warning btn-sm" onclick="laporBayar('${t.id}')">📢 Lapor Bayar</button>` : '<span style="color: var(--success);">✓ Lunas</span>'}
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } catch (error) {
+                container.innerHTML = `<div class="empty-state">❌ Gagal memuat tagihan: ${error.message}</div>`;
+            }
         }
 
         async function renderLaporanKas(container) {
-            const result = await apiCall('getLaporanKas', { rt: currentUser.rt });
-            container.innerHTML = `
-                <div class="page-header">
-                    <h1>Laporan Kas RT</h1>
-                    <p>Transparansi keuangan ${currentUser.rt}</p>
-                </div>
-                <div class="cards-grid">
-                    <div class="card">
-                        <div class="card-header">
-                            <span class="card-title">Total Pemasukan</span>
-                            <div class="card-icon green">📈</div>
-                        </div>
-                        <div class="card-value">${formatRupiah(result.totalPemasukan)}</div>
+            try {
+                const result = await apiCall('getLaporanKas', { rt: currentUser.rt });
+                if (result.status === 'error') {
+                    container.innerHTML = `<div class="empty-state">❌ ${result.message}</div>`;
+                    return;
+                }
+                container.innerHTML = `
+                    <div class="page-header">
+                        <h1>Laporan Kas RT</h1>
+                        <p>Transparansi keuangan ${currentUser.rt}</p>
                     </div>
-                    <div class="card">
-                        <div class="card-header">
-                            <span class="card-title">Total Pengeluaran</span>
-                            <div class="card-icon red">📉</div>
+                    <div class="cards-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="card-title">Total Pemasukan</span>
+                                <div class="card-icon green">📈</div>
+                            </div>
+                            <div class="card-value">${formatRupiah(result.totalPemasukan)}</div>
                         </div>
-                        <div class="card-value">${formatRupiah(result.totalPengeluaran)}</div>
-                    </div>
-                    <div class="card">
-                        <div class="card-header">
-                            <span class="card-title">Saldo Kas</span>
-                            <div class="card-icon blue">💰</div>
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="card-title">Total Pengeluaran</span>
+                                <div class="card-icon red">📉</div>
+                            </div>
+                            <div class="card-value">${formatRupiah(result.totalPengeluaran)}</div>
                         </div>
-                        <div class="card-value">${formatRupiah(result.saldoKas)}</div>
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="card-title">Saldo Kas</span>
+                                <div class="card-icon blue">💰</div>
+                            </div>
+                            <div class="card-value">${formatRupiah(result.saldoKas)}</div>
+                        </div>
                     </div>
-                </div>
-            `;
-
-            // Update summary counts
-            const pending = tagihan.filter(t => t.status === 'Belum' && t.bukti && t.bukti !== '').length;
-            const belumLapor = tagihan.filter(t => t.status === 'Belum' && (!t.bukti || t.bukti === '')).length;
-            const totalBelum = tagihan.filter(t => t.status === 'Belum').length;
-
-            setTimeout(() => {
-                const elPending = document.getElementById('pendingCount');
-                const elBelum = document.getElementById('belumLaporCount');
-                const elTotal = document.getElementById('totalBelumCount');
-                if (elPending) elPending.textContent = pending;
-                if (elBelum) elBelum.textContent = belumLapor;
-                if (elTotal) elTotal.textContent = totalBelum;
-            }, 0);
+                `;
+            } catch (error) {
+                container.innerHTML = `<div class="empty-state">❌ Gagal memuat laporan: ${error.message}</div>`;
+            }
         }
 
         // ============================================
@@ -1037,60 +1012,80 @@
             e.preventDefault();
             const nama = document.getElementById('namaAnggota').value;
             const no_wa = document.getElementById('waAnggota').value;
-            const result = await apiCall('tambahAnggota', { rt: currentUser.rt, nama, no_wa });
-            if (result.status === 'success') {
-                showToast(`Anggota berhasil ditambahkan! PIN: ${result.pin}`);
-                closeModal('modalAnggota');
-                document.getElementById('namaAnggota').value = '';
-                document.getElementById('waAnggota').value = '';
-                renderAnggota(document.getElementById('mainContent'));
-            } else {
-                showToast('Gagal menambah anggota', 'error');
+            try {
+                const result = await apiCall('tambahAnggota', { rt: currentUser.rt, nama, no_wa });
+                if (result.status === 'success') {
+                    showToast(`Anggota berhasil ditambahkan! PIN: ${result.pin}`);
+                    closeModal('modalAnggota');
+                    document.getElementById('namaAnggota').value = '';
+                    document.getElementById('waAnggota').value = '';
+                    renderAnggota(document.getElementById('mainContent'));
+                } else {
+                    showToast('Gagal menambah anggota: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showToast('Gagal menambah anggota: ' + error.message, 'error');
             }
         }
 
         async function hapusAnggota(id) {
             if (!confirm('Yakin ingin menghapus anggota ini?')) return;
-            const result = await apiCall('hapusAnggota', { id });
-            if (result.status === 'success') {
-                showToast('Anggota berhasil dihapus');
-                renderAnggota(document.getElementById('mainContent'));
-            } else {
-                showToast('Gagal menghapus anggota', 'error');
+            try {
+                const result = await apiCall('hapusAnggota', { id });
+                if (result.status === 'success') {
+                    showToast('Anggota berhasil dihapus');
+                    renderAnggota(document.getElementById('mainContent'));
+                } else {
+                    showToast('Gagal menghapus: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showToast('Gagal menghapus: ' + error.message, 'error');
             }
         }
 
         async function buatTagihan(e) {
             e.preventDefault();
             const bulan = document.getElementById('bulanTagihan').value;
-            const result = await apiCall('buatTagihan', { rt: currentUser.rt, bulan });
-            if (result.status === 'success') {
-                showToast(result.message);
-                closeModal('modalTagihan');
-                renderTagihan(document.getElementById('mainContent'));
-            } else {
-                showToast('Gagal membuat tagihan', 'error');
+            try {
+                const result = await apiCall('buatTagihan', { rt: currentUser.rt, bulan });
+                if (result.status === 'success') {
+                    showToast(result.message);
+                    closeModal('modalTagihan');
+                    renderTagihan(document.getElementById('mainContent'));
+                } else {
+                    showToast('Gagal membuat tagihan: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showToast('Gagal membuat tagihan: ' + error.message, 'error');
             }
         }
 
         async function verifikasiBayar(idTagihan) {
             if (!confirm('Verifikasi pembayaran ini?')) return;
-            const result = await apiCall('verifikasiBayar', { idTagihan });
-            if (result.status === 'success') {
-                showToast('Pembayaran berhasil diverifikasi!');
-                renderTagihan(document.getElementById('mainContent'));
-            } else {
-                showToast('Gagal verifikasi', 'error');
+            try {
+                const result = await apiCall('verifikasiBayar', { idTagihan });
+                if (result.status === 'success') {
+                    showToast('Pembayaran berhasil diverifikasi!');
+                    renderTagihan(document.getElementById('mainContent'));
+                } else {
+                    showToast('Gagal verifikasi: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showToast('Gagal verifikasi: ' + error.message, 'error');
             }
         }
 
         async function laporBayar(tagihanId) {
-            const result = await apiCall('laporBayar', { tagihanId });
-            if (result.status === 'success') {
-                showToast(result.message);
-                renderTagihanSaya(document.getElementById('mainContent'));
-            } else {
-                showToast('Gagal melapor', 'error');
+            try {
+                const result = await apiCall('laporBayar', { tagihanId });
+                if (result.status === 'success') {
+                    showToast(result.message);
+                    renderTagihanSaya(document.getElementById('mainContent'));
+                } else {
+                    showToast('Gagal melapor: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showToast('Gagal melapor: ' + error.message, 'error');
             }
         }
 
@@ -1100,117 +1095,108 @@
             const kategori = document.getElementById('kategoriPengeluaran').value;
             const deskripsi = document.getElementById('deskripsiPengeluaran').value;
             const jumlah = document.getElementById('jumlahPengeluaran').value;
-            const result = await apiCall('tambahPengeluaran', { rt: currentUser.rt, tanggal, kategori, deskripsi, jumlah });
-            if (result.status === 'success') {
-                showToast('Pengeluaran berhasil dicatat');
-                closeModal('modalPengeluaran');
-                document.getElementById('tglPengeluaran').value = '';
-                document.getElementById('kategoriPengeluaran').value = '';
-                document.getElementById('deskripsiPengeluaran').value = '';
-                document.getElementById('jumlahPengeluaran').value = '';
-                renderPengeluaran(document.getElementById('mainContent'));
-            } else {
-                showToast('Gagal mencatat pengeluaran', 'error');
+            try {
+                const result = await apiCall('tambahPengeluaran', { rt: currentUser.rt, tanggal, kategori, deskripsi, jumlah });
+                if (result.status === 'success') {
+                    showToast('Pengeluaran berhasil dicatat');
+                    closeModal('modalPengeluaran');
+                    document.getElementById('tglPengeluaran').value = '';
+                    document.getElementById('kategoriPengeluaran').value = '';
+                    document.getElementById('deskripsiPengeluaran').value = '';
+                    document.getElementById('jumlahPengeluaran').value = '';
+                    renderPengeluaran(document.getElementById('mainContent'));
+                } else {
+                    showToast('Gagal mencatat: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showToast('Gagal mencatat: ' + error.message, 'error');
             }
         }
 
         async function loadLaporanPemasukan() {
             const mulai = document.getElementById('lpMulai').value;
             const selesai = document.getElementById('lpSelesai').value;
-            const result = await apiCall('getLaporanPemasukan', { rt: currentUser.rt, bulanMulai: mulai, bulanSelesai: selesai });
-            const content = document.getElementById('lpContent');
-            content.innerHTML = `
-                <div class="summary-grid" style="margin-top: 16px;">
-                    <div class="summary-item">
-                        <div class="value">${formatRupiah(result.total)}</div>
-                        <div class="label">Total Pemasukan</div>
+            try {
+                const result = await apiCall('getLaporanPemasukan', { rt: currentUser.rt, bulanMulai: mulai, bulanSelesai: selesai });
+                if (result.status === 'error') {
+                    document.getElementById('lpContent').innerHTML = `<p style="color: var(--danger);">❌ ${result.message}</p>`;
+                    return;
+                }
+                const content = document.getElementById('lpContent');
+                content.innerHTML = `
+                    <div class="summary-grid" style="margin-top: 16px;">
+                        <div class="summary-item">
+                            <div class="value">${formatRupiah(result.total)}</div>
+                            <div class="label">Total Pemasukan</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="value">${result.data.length}</div>
+                            <div class="label">Jumlah Transaksi</div>
+                        </div>
                     </div>
-                    <div class="summary-item">
-                        <div class="value">${result.data.length}</div>
-                        <div class="label">Jumlah Transaksi</div>
-                    </div>
-                </div>
-                <table style="margin-top: 16px;">
-                    <thead><tr><th>Bulan</th><th>Anggota</th><th>Jenis</th><th>Nominal</th></tr></thead>
-                    <tbody>
-                        ${result.data.map(t => `
-                            <tr>
-                                <td>${t.bulan}</td>
-                                <td>${t.anggota_id || '-'}</td>
-                                <td>${t.jenis_iuran_id || '-'}</td>
-                                <td>${formatRupiah(t.nominal)}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
+                    <table style="margin-top: 16px;">
+                        <thead><tr><th>Bulan</th><th>Anggota ID</th><th>Jenis ID</th><th>Nominal</th></tr></thead>
+                        <tbody>
+                            ${result.data.map(t => `
+                                <tr>
+                                    <td>${t.bulan}</td>
+                                    <td>${t.anggota_id || '-'}</td>
+                                    <td>${t.jenis_iuran_id || '-'}</td>
+                                    <td>${formatRupiah(t.nominal)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                document.getElementById('lpContent').innerHTML = `<p style="color: var(--danger);">❌ ${error.message}</p>`;
+            }
         }
 
         async function loadLaporanPengeluaran() {
             const mulai = document.getElementById('loMulai').value;
             const selesai = document.getElementById('loSelesai').value;
-            const result = await apiCall('getLaporanPengeluaran', { rt: currentUser.rt, tanggalMulai: mulai, tanggalSelesai: selesai });
-            const content = document.getElementById('loContent');
-            content.innerHTML = `
-                <div class="summary-grid" style="margin-top: 16px;">
-                    <div class="summary-item">
-                        <div class="value">${formatRupiah(result.total)}</div>
-                        <div class="label">Total Pengeluaran</div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="value">${result.data.length}</div>
-                        <div class="label">Jumlah Transaksi</div>
-                    </div>
-                </div>
-                <table style="margin-top: 16px;">
-                    <thead><tr><th>Tanggal</th><th>Kategori</th><th>Deskripsi</th><th>Jumlah</th></tr></thead>
-                    <tbody>
-                        ${result.data.map(p => `
-                            <tr>
-                                <td>${formatDate(p.tanggal)}</td>
-                                <td>${p.kategori}</td>
-                                <td>${p.deskripsi}</td>
-                                <td>${formatRupiah(p.jumlah)}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-        }
-
-        
-        async function loadRiwayatAnggota(anggotaId) {
-            const result = await apiCall('getRiwayatAnggota', { anggotaId });
-            if (result.status === 'success') {
-                const content = document.getElementById('riwayatContent');
-                if (content) {
-                    content.innerHTML = `
-                        <h4 style="margin-bottom: 12px;">Riwayat: ${result.namaAnggota}</h4>
-                        <table>
-                            <thead><tr><th>Bulan</th><th>Jenis</th><th>Nominal</th><th>Status</th><th>Tgl Bayar</th></tr></thead>
-                            <tbody>
-                                ${result.data.length === 0 ? '<tr><td colspan="5" class="text-center">Belum ada riwayat</td></tr>' :
-                                result.data.map(t => `
-                                    <tr>
-                                        <td>${t.bulan}</td>
-                                        <td>${t.jenis_iuran_id}</td>
-                                        <td>${formatRupiah(t.nominal)}</td>
-                                        <td><span class="badge ${t.status === 'Lunas' ? 'badge-success' : 'badge-warning'}">${t.status}</span></td>
-                                        <td>${t.tgl_bayar ? formatDate(t.tgl_bayar) : '-'}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    `;
+            try {
+                const result = await apiCall('getLaporanPengeluaran', { rt: currentUser.rt, tanggalMulai: mulai, tanggalSelesai: selesai });
+                if (result.status === 'error') {
+                    document.getElementById('loContent').innerHTML = `<p style="color: var(--danger);">❌ ${result.message}</p>`;
+                    return;
                 }
+                const content = document.getElementById('loContent');
+                content.innerHTML = `
+                    <div class="summary-grid" style="margin-top: 16px;">
+                        <div class="summary-item">
+                            <div class="value">${formatRupiah(result.total)}</div>
+                            <div class="label">Total Pengeluaran</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="value">${result.data.length}</div>
+                            <div class="label">Jumlah Transaksi</div>
+                        </div>
+                    </div>
+                    <table style="margin-top: 16px;">
+                        <thead><tr><th>Tanggal</th><th>Kategori</th><th>Deskripsi</th><th>Jumlah</th></tr></thead>
+                        <tbody>
+                            ${result.data.map(p => `
+                                <tr>
+                                    <td>${formatDate(p.tanggal)}</td>
+                                    <td>${p.kategori}</td>
+                                    <td>${p.deskripsi}</td>
+                                    <td>${formatRupiah(p.jumlah)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                document.getElementById('loContent').innerHTML = `<p style="color: var(--danger);">❌ ${error.message}</p>`;
             }
         }
-        
+
         // ============================================
         // INIT
         // ============================================
         document.addEventListener('DOMContentLoaded', () => {
-            // Set default date for pengeluaran modal
             document.getElementById('tglPengeluaran').value = new Date().toISOString().split('T')[0];
             document.getElementById('bulanTagihan').value = getBulanSekarang();
             checkSession();

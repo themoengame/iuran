@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Sistem Iuran RT - Maju Bersama</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f0f2f5;
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 0.85rem;
+        }
+
+        /* Card */
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1e3c72;
+            border-left: 4px solid #2a5298;
+            padding-left: 12px;
+        }
+
+        /* Grid untuk dashboard */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-top: 4px solid #2a5298;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #1e3c72;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        button {
+            background: #2a5298;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #1e3c72;
+        }
+
+        button.danger {
+            background: #dc3545;
+        }
+
+        button.danger:hover {
+            background: #c82333;
+        }
+
+        button.secondary {
+            background: #6c757d;
+        }
+
+        /* Tabel */
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        /* Login screen */
+        .login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .login-box {
+            background: white;
+            padding: 32px;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 350px;
+            text-align: center;
+        }
+
+        .login-box h2 {
+            margin-bottom: 20px;
+            color: #1e3c72;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 1100;
+            animation: fadeInOut 3s ease;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+        }
+
+        /* Nav tabs */
+        .nav-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 12px;
+            border-radius: 16px;
+        }
+
+        .nav-tab {
+            background: #e9ecef;
+            color: #495057;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        .nav-tab.active {
+            background: #2a5298;
+            color: white;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        /* Hide */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .page-btn {
+            background: #e9ecef;
+            color: #495057;
+            padding: 6px 12px;
+            min-width: 36px;
+        }
+
+        .page-btn.active {
+            background: #2a5298;
+            color: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .stat-value {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-box">
+            <h2>🔐 Sistem Iuran RT</h2>
+            <p style="margin-bottom: 20px; color: #666;">Masukkan PIN Bendahara</p>
+            <input type="password" id="pinInput" placeholder="PIN (default: 1234)" style="margin-bottom: 16px;">
+            <button onclick="doLogin()" style="width: 100%;">Login</button>
+            <p style="margin-top: 16px; font-size: 0.8rem; color: #999;">Demo: PIN 1234</p>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="container hidden">
+        <!-- Header -->
+        <div class="header">
+            <h1 id="namaRT">🏠 Sistem Iuran RT</h1>
+            <p>Kelola iuran, tagihan, dan kas dengan mudah</p>
+        </div>
+
+        <!-- Nav Tabs -->
+        <div class="nav-tabs">
+            <div class="nav-tab active" data-tab="dashboard">📊 Dashboard</div>
+            <div class="nav-tab" data-tab="anggota">👥 Anggota</div>
+            <div class="nav-tab" data-tab="tagihan">📝 Tagihan</div>
+            <div class="nav-tab" data-tab="pengeluaran">💰 Pengeluaran</div>
+            <div class="nav-tab" data-tab="laporan">📈 Laporan</div>
+            <div class="nav-tab" data-tab="config">⚙️ Pengaturan</div>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboardTab" class="tab-content">
+            <div class="stats-grid" id="dashboardStats">
+                <div class="stat-card">Loading...</div>
+            </div>
+            <div class="card">
+                <div class="card-title">📋 Ringkasan Tagihan Bulan Ini</div>
+                <div id="ringkasanTagihan"></div>
+            </div>
+        </div>
+
+        <!-- Anggota Tab -->
+        <div id="anggotaTab" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">➕ Tambah Anggota Baru</div>
+                <form id="formAnggota">
+                    <div class="form-group">
+                        <label>Nama Lengkap</label>
+                        <input type="text" id="namaAnggota" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nomor WhatsApp</label>
+                        <input type="tel" id="noWaAnggota" placeholder="081234567890">
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="statusAnggota">
+                            <option value="aktif">Aktif</option>
+                            <option value="nonaktif">Nonaktif</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>PIN Anggota (4 digit)</label>
+                        <input type="text" id="pinAnggota" maxlength="4" placeholder="0000">
+                    </div>
+                    <button type="submit">Tambah Anggota</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📋 Daftar Anggota</div>
+                <div class="table-wrapper" id="daftarAnggota">
+                    <table>
+                        <thead>
+                            <tr><th>Nama</th><th>No WA</th><th>Status</th><th>Aksi</th></tr>
+                        </thead>
+                        <tbody id="tbodyAnggota"></tbody>
+                    </table>
+                </div>
+                <div id="paginationAnggota" class="pagination"></div>
+            </div>
+        </div>
+
+        <!-- Tagihan Tab -->
+        <div id="tagihanTab" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">💰 Input Tagihan Bulanan</div>
+                <p style="margin-bottom: 12px;">Buat tagihan untuk semua anggota aktif</p>
+                <button onclick="buatTagihanBulanan()" id="btnBuatTagihan">+ Buat Tagihan Bulan Ini</button>
+                <div id="infoTagihan" style="margin-top: 12px;"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">📋 Daftar Tagihan</div>
+                <div class="table-wrapper" id="daftarTagihan"></div>
+            </div>
+        </div>
+
+        <!-- Pengeluaran Tab -->
+        <div id="pengeluaranTab" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">📤 Catat Pengeluaran</div>
+                <form id="formPengeluaran">
+                    <div class="form-group">
+                        <label>Tanggal</label>
+                        <input type="date" id="tglPengeluaran" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Kategori</label>
+                        <input type="text" id="kategoriPengeluaran" placeholder="Konsumsi, Perbaikan, dll" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Deskripsi</label>
+                        <input type="text" id="deskripsiPengeluaran" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Jumlah (Rp)</label>
+                        <input type="number" id="jumlahPengeluaran" required>
+                    </div>
+                    <button type="submit">Simpan Pengeluaran</button>
+                </form>
+            </div>
+            <div class="card">
+                <div class="card-title">📋 Riwayat Pengeluaran</div>
+                <div class="table-wrapper" id="daftarPengeluaran"></div>
+            </div>
+        </div>
+
+        <!-- Laporan Tab -->
+        <div id="laporanTab" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">📊 Laporan Pemasukan & Pengeluaran</div>
+                <div id="laporanKeuangan"></div>
+            </div>
+        </div>
+
+        <!-- Config Tab -->
+        <div id="configTab" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">⚙️ Pengaturan Sistem</div>
+                <div id="formConfig">
+                    <div class="form-group">
+                        <label>Nama RT / Grup</label>
+                        <input type="text" id="configNamaRT" placeholder="RT Maju Bersama">
+                    </div>
+                    <div class="form-group">
+                        <label>PIN Bendahara</label>
+                        <input type="password" id="configPIN" placeholder="1234">
+                    </div>
+                    <div class="form-group">
+                        <label>Tahun Aktif</label>
+                        <input type="number" id="configTahun" placeholder="2026">
+                    </div>
+                    <div class="form-group">
+                        <label>Bulan Aktif (1-12)</label>
+                        <input type="number" id="configBulan" min="1" max="12">
+                    </div>
+                    <button onclick="simpanConfig()">Simpan Pengaturan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== KONFIGURASI ====================
+        // Ganti dengan endpoint GAS Anda
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyZsAmt1tl6d1Dv-W92dSrPmzu3TxX6J21UpPYUBtMm_Hbtbk6VlCp2xQmTA3kzP76c2Q/exec';
+        
+        let currentPageAnggota = 1;
+        let totalPagesAnggota = 1;
+
+        // ==================== FUNGSI UTILITY ====================
+        function showToast(message) {
+            const existing = document.querySelector('.toast');
+            if(existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        async function callGAS(action, params = {}) {
+            const url = new URL(GAS_URL);
+            url.searchParams.append('action', action);
+            for(let key in params) {
+                url.searchParams.append(key, params[key]);
+            }
+            try {
+                const response = await fetch(url.toString());
+                const data = await response.json();
+                return data;
+            } catch(error) {
+                showToast('Error: ' + error.message);
+                return { status: 'error', message: error.message };
+            }
+        }
+
+        // ==================== LOGIN ====================
+        async function doLogin() {
+            const pin = document.getElementById('pinInput').value;
+            const result = await callGAS('loginBendahara', { pin: pin });
+            if(result.status === 'success') {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainApp').classList.remove('hidden');
+                await loadDashboard();
+                await loadAnggota();
+                showToast('Login berhasil!');
+            } else {
+                showToast('PIN salah!');
+            }
+        }
+
+        // ==================== DASHBOARD ====================
+        async function loadDashboard() {
+            const result = await callGAS('getDashboard');
+            if(result.status === 'success') {
+                const data = result.data;
+                const statsHtml = `
+                    <div class="stat-card"><div class="stat-value">Rp ${formatRupiah(data.saldoKas)}</div><div class="stat-label">Saldo Kas</div></div>
+                    <div class="stat-card"><div class="stat-value">Rp ${formatRupiah(data.totalPemasukan)}</div><div class="stat-label">Pemasukan</div></div>
+                    <div class="stat-card"><div class="stat-value">Rp ${formatRupiah(data.totalPengeluaran)}</div><div class="stat-label">Pengeluaran</div></div>
+                    <div class="stat-card"><div class="stat-value">${data.totalAnggota}</div><div class="stat-label">Anggota Aktif</div></div>
+                `;
+                document.getElementById('dashboardStats').innerHTML = statsHtml;
+                
+                const ringkasan = `
+                    <p><strong>Total Tagihan:</strong> Rp ${formatRupiah(data.totalTagihan)}</p>
+                    <p><strong>Sudah Dibayar:</strong> Rp ${formatRupiah(data.totalLunas)} (${data.persenKepatuhan}%)</p>
+                    <p><strong>Belum Dibayar:</strong> Rp ${formatRupiah(data.totalBelum)}</p>
+                    <div style="background:#e9ecef; border-radius:10px; margin-top:10px; overflow:hidden;">
+                        <div style="background:#2a5298; width:${data.persenKepatuhan}%; height:20px;"></div>
+                    </div>
+                `;
+                document.getElementById('ringkasanTagihan').innerHTML = ringkasan;
+            }
+        }
+
+        // ==================== ANGGOTA ====================
+        async function loadAnggota(page = 1) {
+            currentPageAnggota = page;
+            const result = await callGAS('getAnggota', { page: page });
+            if(result.status === 'success') {
+                totalPagesAnggota = result.totalPages;
+                const tbody = document.getElementById('tbodyAnggota');
+                tbody.innerHTML = '';
+                result.data.forEach(anggota => {
+                    const row = tbody.insertRow();
+                    row.innerHTML = `
+                        <td>${anggota.nama}</td>
+                        <td>${anggota.no_wa || '-'}</td>
+                        <td><span style="background:${anggota.status === 'aktif' ? '#d4edda' : '#f8d7da'}; padding:4px 8px; border-radius:12px;">${anggota.status}</span></td>
+                        <td><button onclick="deleteAnggota('${anggota.id}')" class="danger" style="padding:4px 8px;">Hapus</button></td>
+                    `;
+                });
+                renderPaginationAnggota();
+            }
+        }
+
+        function renderPaginationAnggota() {
+            const container = document.getElementById('paginationAnggota');
+            if(totalPagesAnggota <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            let html = '';
+            for(let i=1; i<=totalPagesAnggota; i++) {
+                html += `<button class="page-btn ${i === currentPageAnggota ? 'active' : ''}" onclick="loadAnggota(${i})">${i}</button>`;
+            }
+            container.innerHTML = html;
+        }
+
+        document.getElementById('formAnggota')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const params = {
+                nama: document.getElementById('namaAnggota').value,
+                no_wa: document.getElementById('noWaAnggota').value,
+                status: document.getElementById('statusAnggota').value,
+                pin_anggota: document.getElementById('pinAnggota').value || '0000'
+            };
+            const result = await callGAS('addAnggota', params);
+            if(result.status === 'success') {
+                showToast('Anggota ditambahkan');
+                document.getElementById('formAnggota').reset();
+                loadAnggota(1);
+            }
+        });
+
+        async function deleteAnggota(id) {
+            if(confirm('Hapus anggota ini?')) {
+                const result = await callGAS('deleteAnggota', { id: id });
+                if(result.status === 'success') {
+                    showToast('Anggota dihapus');
+                    loadAnggota(currentPageAnggota);
+                }
+            }
+        }
+
+        // ==================== TAGIHAN ====================
+        async function buatTagihanBulanan() {
+            showToast('Fitur ini akan membuat tagihan untuk semua anggota aktif');
+            // Implementasi lengkap di tahap berikutnya
+        }
+
+        // ==================== PENGELUARAN ====================
+        document.getElementById('formPengeluaran')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const params = {
+                tanggal: document.getElementById('tglPengeluaran').value,
+                kategori: document.getElementById('kategoriPengeluaran').value,
+                deskripsi: document.getElementById('deskripsiPengeluaran').value,
+                jumlah: document.getElementById('jumlahPengeluaran').value
+            };
+            const result = await callGAS('addPengeluaran', params);
+            if(result.status === 'success') {
+                showToast('Pengeluaran dicatat');
+                document.getElementById('formPengeluaran').reset();
+                loadDashboard();
+            }
+        });
+
+        // ==================== NAVIGASI ====================
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const targetTab = tab.dataset.tab;
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+                document.getElementById(`${targetTab}Tab`).classList.remove('hidden');
+                
+                if(targetTab === 'dashboard') loadDashboard();
+                if(targetTab === 'anggota') loadAnggota(1);
+            });
+        });
+
+        function formatRupiah(angka) {
+            return new Intl.NumberFormat('id-ID').format(angka);
+        }
+
+        // Set tanggal default hari ini
+        if(document.getElementById('tglPengeluaran')) {
+            document.getElementById('tglPengeluaran').value = new Date().toISOString().slice(0,10);
+        }
+    </script>
+</body>
+</html>

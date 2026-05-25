@@ -198,6 +198,7 @@
             .search-box input { width: 100%; }
         }
     </style>
+<base target="_blank">
 </head>
 <body>
     <div class="toast-container" id="toastContainer"></div>
@@ -210,17 +211,17 @@
     <div class="login-container" id="loginPage">
         <div class="login-box">
             <div class="login-logo">
-                <h1>ðŸ˜ï¸ Sistem Iuran RT</h1>
+                <h1>🏘️ Sistem Iuran RT</h1>
                 <p>Kelola iuran warga dengan mudah</p>
             </div>
             <div class="role-selector">
-                <button class="role-btn active" onclick="setRole('bendahara')" id="btnBendahara">ðŸ‘¤ Bendahara</button>
-                <button class="role-btn" onclick="setRole('anggota')" id="btnAnggota">ðŸ  Anggota</button>
+                <button class="role-btn active" onclick="setRole('bendahara')" id="btnBendahara">👤 Bendahara</button>
+                <button class="role-btn" onclick="setRole('anggota')" id="btnAnggota">🏠 Anggota</button>
             </div>
             <div style="margin-bottom: 16px; padding: 12px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; font-size: 13px;">
-                <strong>âš™ï¸ Konfigurasi GAS:</strong><br>
+                <strong>⚙️ Konfigurasi GAS:</strong><br>
                 Edit file ini, cari <code>GAS_URL</code> dan ganti dengan URL deployment GAS Anda.<br>
-                <button type="button" class="btn btn-sm" style="margin-top: 8px; background: #0284c7; color: white;" onclick="testConnection()">ðŸ§ª Test Koneksi GAS</button>
+                <button type="button" class="btn btn-sm" style="margin-top: 8px; background: #0284c7; color: white;" onclick="testConnection()">🧪 Test Koneksi GAS</button>
             </div>
             <form id="formBendahara" onsubmit="loginBendahara(event)">
                 <div class="form-group">
@@ -260,7 +261,7 @@
     <div class="app-container" id="appContainer">
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <h2>ðŸ˜ï¸ Iuran RT</h2>
+                <h2>🏘️ Iuran RT</h2>
                 <p id="sidebarRtName">-</p>
             </div>
             <nav class="nav-menu" id="navMenu">
@@ -408,7 +409,7 @@
         // 1. Deploy GAS sebagai Web App (Deploy > New Deployment > Web App)
         // 2. Copy URL yang dihasilkan (format: https://script.google.com/macros/s/XXXX/exec)
         // 3. Paste URL di bawah ini, ganti YOUR_SCRIPT_ID
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwWWCRXWuH7GJFFpIOaLKKPG_GgKz881kUTkQ6zladr8oh3qXNp89vmCer04JoNDOGV/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
         // Ganti YOUR_SCRIPT_ID dengan ID deployment GAS Anda
 
         // ============================================
@@ -510,9 +511,9 @@
         async function testConnection() {
             const result = await apiCall('test');
             if (result.status === 'success') {
-                showToast('âœ… Koneksi ke GAS berhasil! ' + result.message);
+                showToast('✅ Koneksi ke GAS berhasil! ' + result.message);
             } else {
-                showToast('âŒ Gagal terhubung ke GAS: ' + result.message, 'error');
+                showToast('❌ Gagal terhubung ke GAS: ' + result.message, 'error');
             }
             return result;
         }
@@ -636,7 +637,7 @@
                     <div class="card">
                         <div class="card-header">
                             <span class="card-title">Total Anggota Aktif</span>
-                            <div class="card-icon blue">ðŸ‘¥</div>
+                            <div class="card-icon blue">👥</div>
                         </div>
                         <div class="card-value">${d.totalAnggota}</div>
                         <div class="card-subtitle">Orang</div>
@@ -644,7 +645,7 @@
                     <div class="card">
                         <div class="card-header">
                             <span class="card-title">Tagihan Bulan Ini</span>
-                            <div class="card-icon orange">ðŸ“‹</div>
+                            <div class="card-icon orange">📋</div>
                         </div>
                         <div class="card-value">${d.totalTagihan}</div>
                         <div class="card-subtitle">${d.totalLunas} Lunas, ${d.totalBelum} Belum</div>
@@ -652,7 +653,7 @@
                     <div class="card">
                         <div class="card-header">
                             <span class="card-title">Kepatuhan</span>
-                            <div class="card-icon green">ðŸ“Š</div>
+                            <div class="card-icon green">📊</div>
                         </div>
                         <div class="card-value">${d.persentaseKepatuhan}%</div>
                         <div class="progress-bar"><div class="progress-fill" style="width: ${d.persentaseKepatuhan}%"></div></div>
@@ -660,14 +661,14 @@
                     <div class="card">
                         <div class="card-header">
                             <span class="card-title">Saldo Kas</span>
-                            <div class="card-icon ${d.saldoKas >= 0 ? 'green' : 'red'}">ðŸ’°</div>
+                            <div class="card-icon ${d.saldoKas >= 0 ? 'green' : 'red'}">💰</div>
                         </div>
                         <div class="card-value">${formatRupiah(d.saldoKas)}</div>
                         <div class="card-subtitle">Pemasukan: ${formatRupiah(d.totalPemasukan)} | Pengeluaran: ${formatRupiah(d.totalPengeluaran)}</div>
                     </div>
                 </div>
                 <div class="table-container">
-                    <div class="table-header"><h3>ðŸ“ˆ Statistik Pembayaran</h3></div>
+                    <div class="table-header"><h3>📈 Statistik Pembayaran</h3></div>
                     <div style="padding: 24px;">
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
                             <div style="text-align: center; padding: 20px; background: #f0fdf4; border-radius: 8px;">
@@ -716,7 +717,7 @@
                 </div>
                 <div class="table-container">
                     <div class="table-header">
-                        <h3>ðŸ‘¥ Daftar Anggota</h3>
+                        <h3>👥 Daftar Anggota</h3>
                         <div class="table-actions">
                             <button class="btn btn-primary btn-sm" onclick="openModal('modalAnggota')">+ Tambah Anggota</button>
                         </div>
@@ -734,7 +735,7 @@
                                     <td>${formatDate(a.tgl_daftar)}</td>
                                     <td>
                                         <div class="action-btns">
-                                            <button class="btn-icon" onclick="hapusAnggota('${a.id}')" title="Hapus">ðŸ—‘ï¸</button>
+                                            <button class="btn-icon" onclick="hapusAnggota('${a.id}')" title="Hapus">🗑️</button>
                                         </div>
                                     </td>
                                 </tr>
@@ -780,7 +781,7 @@
                     <button class="btn btn-primary btn-sm" onclick="openModal('modalTagihan')">+ Buat Tagihan Bulanan</button>
                 </div>
                 <div class="summary-box" style="background: #fffbeb; border-color: #fcd34d;">
-                    <h4 style="color: #92400e;">ðŸ“¢ Tagihan Menunggu Verifikasi</h4>
+                    <h4 style="color: #92400e;">📢 Tagihan Menunggu Verifikasi</h4>
                     <div class="summary-grid">
                         <div class="summary-item">
                             <div class="value" id="pendingCount">0</div>
@@ -797,7 +798,7 @@
                     </div>
                 </div>
                 <div class="table-container">
-                    <div class="table-header"><h3>ðŸ“‹ Daftar Tagihan</h3></div>
+                    <div class="table-header"><h3>📋 Daftar Tagihan</h3></div>
                     <table>
                         <thead><tr><th>Anggota</th><th>Jenis Iuran</th><th>Nominal</th><th>Status</th><th>Tgl Bayar</th><th>Aksi</th></tr></thead>
                         <tbody>
@@ -811,13 +812,13 @@
                                     ${t.status === 'Lunas' 
                                         ? '<span class="badge badge-success">Lunas</span>' 
                                         : t.bukti && t.bukti !== '' 
-                                            ? '<span class="badge badge-warning">Belum (ðŸ“¢ Dilapor)</span>' 
+                                            ? '<span class="badge badge-warning">Belum (📢 Dilapor)</span>' 
                                             : '<span class="badge badge-gray">Belum</span>'
                                     }
                                 </td>
                                     <td>${t.tgl_bayar ? formatDate(t.tgl_bayar) : '-'}</td>
                                     <td>
-                                        ${t.status === 'Belum' ? `<button class="btn btn-success btn-sm" onclick="verifikasiBayar('${t.id}')">âœ“ Verifikasi</button>` : '<span style="color: var(--success); font-size: 12px;">âœ“ Terverifikasi</span>'}
+                                        ${t.status === 'Belum' ? `<button class="btn btn-success btn-sm" onclick="verifikasiBayar('${t.id}')">✓ Verifikasi</button>` : '<span style="color: var(--success); font-size: 12px;">✓ Terverifikasi</span>'}
                                     </td>
                                 </tr>
                             `).join('')}
@@ -851,7 +852,7 @@
                 </div>
                 <div class="table-container">
                     <div class="table-header">
-                        <h3>ðŸ’¸ Riwayat Pengeluaran</h3>
+                        <h3>💸 Riwayat Pengeluaran</h3>
                         <button class="btn btn-primary btn-sm" onclick="openModal('modalPengeluaran')">+ Catat Pengeluaran</button>
                     </div>
                     <table>
@@ -893,7 +894,7 @@
                     <p>Laporan keuangan ${currentUser.rt}</p>
                 </div>
                 <div class="summary-box">
-                    <h4>ðŸ“Š Laporan Pemasukan</h4>
+                    <h4>📊 Laporan Pemasukan</h4>
                     <div class="filter-bar">
                         <input type="month" id="lpMulai" placeholder="Bulan Mulai">
                         <input type="month" id="lpSelesai" placeholder="Bulan Selesai">
@@ -902,7 +903,7 @@
                     <div id="lpContent"></div>
                 </div>
                 <div class="summary-box" style="background: #fef2f2; border-color: #fecaca;">
-                    <h4 style="color: var(--danger);">ðŸ“Š Laporan Pengeluaran</h4>
+                    <h4 style="color: var(--danger);">📊 Laporan Pengeluaran</h4>
                     <div class="filter-bar">
                         <input type="date" id="loMulai" placeholder="Tanggal Mulai">
                         <input type="date" id="loSelesai" placeholder="Tanggal Selesai">
@@ -939,7 +940,7 @@
                     <p>Halo, ${currentUser.nama}! Berikut tagihan Anda</p>
                 </div>
                 <div class="table-container">
-                    <div class="table-header"><h3>ðŸ“‹ Tagihan Anda</h3></div>
+                    <div class="table-header"><h3>📋 Tagihan Anda</h3></div>
                     <table>
                         <thead><tr><th>Bulan</th><th>Jenis Iuran</th><th>Nominal</th><th>Status</th><th>Aksi</th></tr></thead>
                         <tbody>
@@ -953,12 +954,12 @@
                                     ${t.status === 'Lunas' 
                                         ? '<span class="badge badge-success">Lunas</span>' 
                                         : t.bukti && t.bukti !== '' 
-                                            ? '<span class="badge badge-warning">Belum (ðŸ“¢ Dilapor)</span>' 
+                                            ? '<span class="badge badge-warning">Belum (📢 Dilapor)</span>' 
                                             : '<span class="badge badge-gray">Belum</span>'
                                     }
                                 </td>
                                     <td>
-                                        ${t.status === 'Belum' ? `<button class="btn btn-warning btn-sm" onclick="laporBayar('${t.id}')">ðŸ“¢ Lapor Bayar</button>` : '<span style="color: var(--success);">âœ“ Lunas</span>'}
+                                        ${t.status === 'Belum' ? `<button class="btn btn-warning btn-sm" onclick="laporBayar('${t.id}')">📢 Lapor Bayar</button>` : '<span style="color: var(--success);">✓ Lunas</span>'}
                                     </td>
                                 </tr>
                             `).join('')}
@@ -993,21 +994,21 @@
                     <div class="card">
                         <div class="card-header">
                             <span class="card-title">Total Pemasukan</span>
-                            <div class="card-icon green">ðŸ“ˆ</div>
+                            <div class="card-icon green">📈</div>
                         </div>
                         <div class="card-value">${formatRupiah(result.totalPemasukan)}</div>
                     </div>
                     <div class="card">
                         <div class="card-header">
                             <span class="card-title">Total Pengeluaran</span>
-                            <div class="card-icon red">ðŸ“‰</div>
+                            <div class="card-icon red">📉</div>
                         </div>
                         <div class="card-value">${formatRupiah(result.totalPengeluaran)}</div>
                     </div>
                     <div class="card">
                         <div class="card-header">
                             <span class="card-title">Saldo Kas</span>
-                            <div class="card-icon blue">ðŸ’°</div>
+                            <div class="card-icon blue">💰</div>
                         </div>
                         <div class="card-value">${formatRupiah(result.saldoKas)}</div>
                     </div>

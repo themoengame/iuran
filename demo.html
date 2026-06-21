@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Manajemen Warga - Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body { background: #eef2f7; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .sidebar { width: 280px; background: #1e293b; color: white; position: fixed; height: 100vh; overflow-y: auto; z-index: 1000; }
+        .sidebar .logo { padding: 20px; text-align: center; border-bottom: 1px solid #334155; }
+        .sidebar .logo h4 { margin-bottom: 5px; }
+        .sidebar .logo small { font-size: 11px; opacity: 0.7; }
+        .sidebar .nav-link { color: #cbd5e1; padding: 12px 20px; display: flex; align-items: center; gap: 12px; text-decoration: none; transition: all 0.2s; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background: #334155; color: white; }
+        .sidebar .nav-link i { width: 24px; }
+        .main-content { margin-left: 280px; padding: 20px; min-height: 100vh; }
+        .card { background: white; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px; border: none; }
+        .section-title { font-size: 1.3rem; font-weight: 600; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .btn-primary { background: #2563eb; border: none; padding: 8px 20px; border-radius: 40px; color: white; cursor: pointer; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-outline { background: transparent; border: 1px solid #cbd5e1; padding: 6px 14px; border-radius: 30px; cursor: pointer; }
+        .badge-success { background: #dcfce7; color: #15803d; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-secondary { background: #e2e8f0; color: #475569; }
+        .stat-card { background: #f8fafc; border-radius: 16px; padding: 16px; text-align: center; }
+        .stat-card .label { font-size: 0.8rem; color: #64748b; margin-bottom: 8px; }
+        .stat-card .value { font-size: 1.3rem; font-weight: 700; }
+        .login-card { max-width: 400px; margin: 100px auto; background: white; border-radius: 24px; padding: 30px; box-shadow: 0 20px 35px rgba(0,0,0,0.2); }
+        .hidden { display: none; }
+        @media (max-width: 768px) { .sidebar { width: 70px; } .sidebar .nav-link span { display: none; } .main-content { margin-left: 70px; } }
+        .demo-info { background: #f8f9fa; border-radius: 16px; padding: 15px; margin-top: 20px; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+<!-- Login Page -->
+<div id="loginPage">
+    <div class="container">
+        <div class="login-card">
+            <div class="text-center mb-4">
+                <i class="fas fa-building fa-3x text-primary"></i>
+                <h3 class="mt-2">WargaKita+ Demo</h3>
+                <p class="text-muted">Multi RT & RW</p>
+            </div>
+            <div id="loginError" class="alert alert-danger hidden"></div>
+            <form id="loginForm">
+                <div class="mb-3">
+                    <label class="form-label">Username</label>
+                    <input type="text" id="loginUsername" class="form-control" placeholder="Masukkan username" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="loginPassword" class="form-control" placeholder="********" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Login</button>
+            </form>
+            <div class="demo-info">
+                <h6 class="fw-bold mb-2"><i class="fas fa-info-circle"></i> Akun Demo</h6>
+                <div class="row">
+                    <div class="col-6">
+                        <strong>RW:</strong><br>
+                        ketua_rw / rahasia<br>
+                        sekretaris_rw / rahasia<br>
+                        bendahara_rw / rahasia
+                    </div>
+                    <div class="col-6">
+                        <strong>RT 01:</strong><br>
+                        ketua_rt01 / rahasia<br>
+                        bendahara_rt01 / rahasia<br>
+                        sekretaris_rt01 / rahasia<br>
+                        anggota_rt01 / rahasia
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main App -->
+<div id="appContainer" class="hidden">
+    <div class="sidebar" id="sidebar">
+        <div class="logo">
+            <h4><i class="fas fa-building"></i> WargaKita+</h4>
+            <small id="userLocation">RW 01</small>
+        </div>
+        <nav class="nav flex-column" id="menuContainer"></nav>
+    </div>
+    <div class="main-content">
+        <div id="alertContainer"></div>
+        <div id="pageContent">
+            <div class="card">
+                <h3>Selamat datang, <span id="userNameDisplay"></span></h3>
+                <p>Silakan pilih menu di samping.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==================== DATA MASTER ====================
+    const DATA = {
+        rw: { id: 1, kode: 'RW01', nama: 'RW Cempaka' },
+        rt: [
+            { id: 1, id_rw: 1, kode: 'RT01', nama: 'RT 01' },
+            { id: 2, id_rw: 1, kode: 'RT02', nama: 'RT 02' }
+        ],
+        users: [
+            // RW
+            { id: 1, id_rt: 0, id_rw: 1, nik: 'RW001', nama: 'Ketua RW', role: 'rw_ketua', username: 'ketua_rw', password: 'rahasia' },
+            { id: 2, id_rt: 0, id_rw: 1, nik: 'RW002', nama: 'Sekretaris RW', role: 'rw_sekretaris', username: 'sekretaris_rw', password: 'rahasia' },
+            { id: 3, id_rt: 0, id_rw: 1, nik: 'RW003', nama: 'Bendahara RW', role: 'rw_bendahara', username: 'bendahara_rw', password: 'rahasia' },
+            // RT01
+            { id: 4, id_rt: 1, id_rw: 1, nik: 'RT01001', nama: 'Ketua RT01', role: 'ketua', username: 'ketua_rt01', password: 'rahasia' },
+            { id: 5, id_rt: 1, id_rw: 1, nik: 'RT01002', nama: 'Bendahara RT01', role: 'bendahara', username: 'bendahara_rt01', password: 'rahasia' },
+            { id: 6, id_rt: 1, id_rw: 1, nik: 'RT01003', nama: 'Sekretaris RT01', role: 'sekretaris', username: 'sekretaris_rt01', password: 'rahasia' },
+            { id: 7, id_rt: 1, id_rw: 1, nik: 'RT01004', nama: 'Anggota RT01', role: 'anggota', username: 'anggota_rt01', password: 'rahasia' },
+            // RT02
+            { id: 8, id_rt: 2, id_rw: 1, nik: 'RT02001', nama: 'Ketua RT02', role: 'ketua', username: 'ketua_rt02', password: 'rahasia' },
+            { id: 9, id_rt: 2, id_rw: 1, nik: 'RT02002', nama: 'Bendahara RT02', role: 'bendahara', username: 'bendahara_rt02', password: 'rahasia' },
+            { id: 10, id_rt: 2, id_rw: 1, nik: 'RT02003', nama: 'Sekretaris RT02', role: 'sekretaris', username: 'sekretaris_rt02', password: 'rahasia' },
+            { id: 11, id_rt: 2, id_rw: 1, nik: 'RT02004', nama: 'Anggota RT02', role: 'anggota', username: 'anggota_rt02', password: 'rahasia' }
+        ]
+    };
+
+    // Simpan ke localStorage jika belum ada
+    if (!localStorage.getItem('warga_data')) {
+        localStorage.setItem('warga_data', JSON.stringify(DATA));
+    }
+
+    // ==================== FUNGSI UTILITY ====================
+    function getData() {
+        return JSON.parse(localStorage.getItem('warga_data'));
+    }
+
+    function saveData(data) {
+        localStorage.setItem('warga_data', JSON.stringify(data));
+    }
+
+    function getRoleLabel(role) {
+        const map = {
+            'rw_ketua': 'Ketua RW',
+            'rw_bendahara': 'Bendahara RW',
+            'rw_sekretaris': 'Sekretaris RW',
+            'ketua': 'Ketua RT',
+            'bendahara': 'Bendahara RT',
+            'sekretaris': 'Sekretaris RT',
+            'anggota': 'Anggota'
+        };
+        return map[role] || role;
+    }
+
+    function findUserByUsername(username) {
+        const data = getData();
+        return data.users.find(u => u.username === username);
+    }
+
+    function getCurrentUser() {
+        const userData = JSON.parse(localStorage.getItem('current_user'));
+        return userData;
+    }
+
+    function setCurrentUser(user) {
+        localStorage.setItem('current_user', JSON.stringify(user));
+    }
+
+    function clearCurrentUser() {
+        localStorage.removeItem('current_user');
+    }
+
+    function isLoggedIn() {
+        return !!localStorage.getItem('current_user');
+    }
+
+    // ==================== RENDER MENU ====================
+    function renderMenu(role) {
+        const menuMap = {
+            'rw_ketua': [
+                { id: 'dashboard', icon: 'fa-chart-line', label: 'Dashboard RW' },
+                { id: 'pengumuman_rw', icon: 'fa-bullhorn', label: 'Pengumuman RW' },
+                { id: 'agenda_rw', icon: 'fa-calendar', label: 'Agenda RW' },
+                { id: 'kelola_pengurus', icon: 'fa-users-cog', label: 'Kelola Pengurus RT' },
+                { id: 'ganti_password', icon: 'fa-key', label: 'Ganti Password' }
+            ],
+            'rw_bendahara': [
+                { id: 'dashboard', icon: 'fa-chart-line', label: 'Dashboard RW' },
+                { id: 'kas_rw', icon: 'fa-money-bill', label: 'Kas RW' },
+                { id: 'laporan_kas_rw', icon: 'fa-chart-simple', label: 'Laporan Kas RW' },
+                { id: 'ganti_password', icon: 'fa-key', label: 'Ganti Password' }
+            ],
+            'rw_sekretaris': [
+                { id: 'dashboard', icon: 'fa-chart-line', label: 'Dashboard RW' },
+                { id: 'pengumuman_rw', icon: 'fa-bullhorn', label: 'Pengumuman RW' },
+                { id: 'agenda_rw', icon: 'fa-calendar', label: 'Agenda RW' },
+                { id: 'kelola_pengurus', icon: 'fa-users-cog', label: 'Kelola Pengurus RT' },
+                { id: 'ganti_password', icon: 'fa-key', label: 'Ganti Password' }
+            ],
+            'ketua': [
+                { id: 'dashboard', icon: 'fa-chart-line', label: 'Dashboard RT' },
+                { id: 'jenis_iuran', icon: 'fa-tags', label: 'Jenis Iuran' },
+                { id: 'pengumuman', icon: 'fa-bullhorn', label: 'Pengumuman' },
+                { id: 'agenda', icon: 'fa-calendar', label: 'Agenda' },
+                { id: 'ganti_password', icon: 'fa-key', label: 'Ganti Password' }
+            ],
+            'bendahara': [
+                { id: 'dashboard', icon: 'fa-chart-line', label: 'Dashboard RT' },
+                { id: 'generate_tagihan', icon: 'fa-calendar-plus', label: 'Generate Tagihan' },
+                { id: 'verifikasi_iuran', icon: 'fa-check-double', label: 'Verifikasi Iuran' },
+                { id: 'laporan_keuangan', icon: 'fa-chart-simple', label: 'Laporan Keuangan' },
+                { id: 'ganti_password', icon: 'fa-key', label: 'Ganti Password' }
+            ],
+            'sekretaris': [
+                { id: 'dashboard', icon: 'fa-chart-line', label: 'Dashboard RT' },
+                { id: 'kelola_anggota', icon: 'fa-users', label: 'Kelola Anggota' },
+                { id: 'reset_password_anggota', icon: 'fa-user-lock', label: 'Reset Password Anggota' },
+                { id: 'ganti_password', icon: 'fa-key', label: 'Ganti Password' }
+            ],
+            'anggota': [
+                { id: 'dashboard', icon: 'fa-chart-line', label: 'Dashboard' },
+                { id: 'tagihan_saya', icon: 'fa-receipt', label: 'Tagihan Saya' },
+                { id: 'tabungan_saya', icon: 'fa-piggy-bank', label: 'Tabungan Saya' },
+                { id: 'ganti_password', icon: 'fa-key', label: 'Ganti Password' }
+            ]
+        };
+
+        const items = menuMap[role] || [];
+        const container = document.getElementById('menuContainer');
+        container.innerHTML = items.map(item =>
+            `<a class="nav-link" data-page="${item.id}" href="#"><i class="fas ${item.icon}"></i><span> ${item.label}</span></a>`
+        ).join('');
+
+        // Tambahkan event listener
+        container.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const page = this.dataset.page;
+                container.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+                renderPage(page);
+            });
+        });
+
+        // Set active pertama
+        const firstLink = container.querySelector('.nav-link');
+        if (firstLink) firstLink.classList.add('active');
+    }
+
+    // ==================== RENDER PAGE ====================
+    function renderPage(page) {
+        const content = document.getElementById('pageContent');
+        const user = getCurrentUser();
+        let html = '';
+
+        switch (page) {
+            case 'dashboard':
+                html = `
+                    <div class="card">
+                        <div class="section-title"><span><i class="fas fa-chart-line"></i> Dashboard ${getRoleLabel(user.role)}</span></div>
+                        <p>Selamat datang, <strong>${user.nama}</strong> (${getRoleLabel(user.role)})</p>
+                        <div class="row">
+                            <div class="col-md-3"><div class="stat-card"><div class="label">Jumlah RT</div><div class="value">2</div></div></div>
+                            <div class="col-md-3"><div class="stat-card"><div class="label">Total Anggota</div><div class="value">2</div></div></div>
+                            <div class="col-md-3"><div class="stat-card"><div class="label">Saldo Kas</div><div class="value">Rp 0</div></div></div>
+                            <div class="col-md-3"><div class="stat-card"><div class="label">Tagihan Belum Lunas</div><div class="value">0</div></div></div>
+                        </div>
+                    </div>
+                `;
+                break;
+
+            case 'pengumuman_rw':
+                html = `
+                    <div class="card">
+                        <div class="section-title"><span><i class="fas fa-bullhorn"></i> Pengumuman RW</span><button class="btn-primary">+ Tambah</button></div>
+                        <p>Belum ada pengumuman.</p>
+                    </div>
+                `;
+                break;
+
+            case 'agenda_rw':
+                html = `
+                    <div class="card">
+                        <div class="section-title"><span><i class="fas fa-calendar"></i> Agenda RW</span><button class="btn-primary">+ Tambah</button></div>
+                        <p>Belum ada agenda.</p>
+                    </div>
+                `;
+                break;
+
+            case 'kelola_pengurus':
+                const data = getData();
+                const rtList = data.rt.filter(r => r.id_rw === user.id_rw);
+                let tableRows = '';
+                rtList.forEach(rt => {
+                    const pengurus = data.users.filter(u => u.id_rt === rt.id && ['ketua','bendahara','sekretaris'].includes(u.role));
+                    pengurus.forEach(p => {
+                        tableRows += `
+                            <tr>
+                                <td>${p.nik}</td>
+                                <td>${p.nama}</td>
+                                <td>${getRoleLabel(p.role)}</td>
+                                <td>${p.username}</td>
+                                <td>${rt.kode}</td>
+                                <td><button class="btn-outline btn-sm">Edit</button> <button class="btn-outline btn-sm">Reset</button></td>
+                            </tr>
+                        `;
+                    });
+                });
+                html = `
+                    <div class="card">
+                        <div class="section-title"><span><i class="fas fa-users-cog"></i> Kelola Pengurus RT</span><button class="btn-primary">+ Tambah</button></div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead><tr><th>NIK</th><th>Nama</th><th>Role</th><th>Username</th><th>RT</th><th>Aksi</th></tr></thead>
+                                <tbody>${tableRows || '<tr><td colspan="6" class="text-center">Belum ada pengurus</td></tr>'}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+                break;
+
+            case 'ganti_password':
+                html = `
+                    <div class="card">
+                        <div class="section-title"><span><i class="fas fa-key"></i> Ganti Password</span></div>
+                        <form id="changePasswordForm">
+                            <div class="mb-3"><label>Password Lama</label><input type="password" id="oldPass" class="form-control" required></div>
+                            <div class="mb-3"><label>Password Baru</label><input type="password" id="newPass" class="form-control" required></div>
+                            <div class="mb-3"><label>Konfirmasi</label><input type="password" id="confirmPass" class="form-control" required></div>
+                            <button type="submit" class="btn-primary">Ganti Password</button>
+                        </form>
+                    </div>
+                `;
+                break;
+
+            case 'kas_rw':
+                html = `
+                    <div class="card">
+                        <div class="section-title"><span><i class="fas fa-money-bill"></i> Kas RW</span><button class="btn-primary">+ Transaksi</button></div>
+                        <p>Belum ada transaksi.</p>
+                    </div>
+                `;
+                break;
+
+            case 'laporan_kas_rw':
+                html = `
+                    <div class="card">
+                        <div class="section-title"><span><i class="fas fa-chart-simple"></i> Laporan Kas RW</span></div>
+                        <p>Belum ada laporan.</p>
+                    </div>
+                `;
+                break;
+
+            case 'jenis_iuran':
+                html = `
+                    <div class="card">
+                        <div class="section-title"><span><i class="fas fa-tags"></i> Jenis Iuran</span><button class="btn-primary">+ Tambah</button></div>
+                        <p>Belum ada jenis iuran.</p>
+                    </div>
+                `;
+                break;
+
+            case 'pengumuman':
+                html = `
+                    <div class="card">
+                        <div class="section-title"><span><i class="fas fa-bullhorn"></i> Pengumuman</span><button class="btn-primary">+ Tambah</button></div>
+                        <p>Belum ada pengumuman.</p>
+                    </div>
+                `;
+                break;
+
+            case 'agenda':
+                html = `
+                    <div class="card">
+                        <div class="section-title"><span><i class="fas fa-calendar"></i> Agenda</span><button class="btn-primary">+ Tambah</button></div>
+                        <p>Belum ada agenda.</p>
+                    </div>
+                `;
+                break;
+
+            case 'generate_tagihan':
+                html = `
+                    <div class="card">
+                        <div class="section-title"><span><i class="fas fa-calendar-plus"></i> Generate Tagihan</span></div>
+                        <p>Belum ada tagihan.</p>
+                    </div>
+                `;
+                break;
+
+            case 'verifikasi_iuran':
+                html = `
+                    <div class="card">
+                        <div class="section-title"><span><i class="fas fa-check-double"></i> Verifikasi Iuran</span></div>
+                        <p>Belum ada pembayaran yang perlu diverifikasi.</p>
+                    </div>
+                `;
+                break;
+
+            case 'laporan_keuangan':
+                html = `
+                    <div class="card">
+                        <div class="section-title"><span><i class="fas fa-chart-simple"></i> Laporan Keuangan</span></div>
+                        <p>Belum ada data transaksi.</p>
+                    </div>
+                `;
+                break;
+
+            case 'kelola_anggota':
+                const dataAnggota = getData();
+                const anggotaRT = dataAnggota.users.filter(u => u.id_rt === user.id_rt && u.role === 'anggota');
+                let rows = anggotaRT.map(a =>
+                    `<tr><td>${a.nik}</td><td>${a.nama}</td><td>${a.username}</td><td><button class="btn-outline btn-sm">Edit</button></td></tr>`
+                ).join('');
+                html = `
+                    <div class="card">
+                        <div class="section-title"><span><i class="fas fa-users"></i> Kelola Anggota</span><button class="btn-primary">+ Tambah</button></div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead><tr><th>NIK</th><th>Nama</th><th>Username</th><th>Aksi</th></tr></thead>
+                                <tbody>${rows || '<tr><td colspan="4" class="text-center">Belum ada anggota</td></tr>'}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+                break;
+
+            case 'reset_password_anggota':
+                html = `
+                    <div class="card">
+                        <div class="section-title"><span><i class="fas fa-user-lock"></i> Reset Password Anggota</span></div>
+                        <p>Daftar anggota (demo: klik tombol Reset di samping)</p>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead><tr><th>NIK</th><th>Nama</th><th>Username</th><th>Aksi</th></tr></thead>
+                                <tbody>
+                                    <tr><td>RT01004</td><td>Anggota RT01</td><td>anggota_rt01</td><td><button class="btn-warning btn-sm">Reset</button></td></tr>
+                                    <tr><td>RT02004</td><td>Anggota RT02</td><td>anggota_rt02</td><td><button class="btn-warning btn-sm">Reset</button></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+                break;
+
+            case 'tagihan_saya':
+                html = `
+                    <div class="card">
+                        <div class="section-title"><span><i class="fas fa-receipt"></i> Tagihan Saya</span></div>
+                        <p>Belum ada tagihan.</p>
+                    </div>
+                `;
+                break;
+
+            case 'tabungan_saya':
+                html = `
+                    <div class="card">
+                        <div class="section-title"><span><i class="fas fa-piggy-bank"></i> Tabungan Saya</span></div>
+                        <p>Saldo: Rp 0</p>
+                        <p>Belum ada riwayat tabungan.</p>
+                    </div>
+                `;
+                break;
+
+            default:
+                html = `<div class="card"><h3>Halaman tidak ditemukan</h3></div>`;
+        }
+
+        content.innerHTML = html;
+
+        // Jika halaman ganti password, tambahkan event listener
+        if (page === 'ganti_password') {
+            document.getElementById('changePasswordForm')?.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const old = document.getElementById('oldPass').value;
+                const newPass = document.getElementById('newPass').value;
+                const confirm = document.getElementById('confirmPass').value;
+                if (newPass !== confirm) {
+                    alert('Konfirmasi password tidak cocok!');
+                    return;
+                }
+                // Simulasi ganti password
+                const data = getData();
+                const user = data.users.find(u => u.id === getCurrentUser().id);
+                if (user.password !== old) {
+                    alert('Password lama salah!');
+                    return;
+                }
+                user.password = newPass;
+                saveData(data);
+                alert('Password berhasil diubah! Silakan login kembali.');
+                logout();
+            });
+        }
+    }
+
+    // ==================== LOGIN / LOGOUT ====================
+    function login(username, password) {
+        const user = findUserByUsername(username);
+        if (!user) {
+            document.getElementById('loginError').textContent = 'Username tidak ditemukan.';
+            document.getElementById('loginError').classList.remove('hidden');
+            return false;
+        }
+        if (user.password !== password) {
+            document.getElementById('loginError').textContent = 'Password salah!';
+            document.getElementById('loginError').classList.remove('hidden');
+            return false;
+        }
+
+        setCurrentUser(user);
+        document.getElementById('loginPage').classList.add('hidden');
+        document.getElementById('appContainer').classList.remove('hidden');
+
+        // Tampilkan nama user
+        document.getElementById('userNameDisplay').textContent = user.nama;
+        // Tampilkan lokasi (RW/RT)
+        const data = getData();
+        let locationText = '';
+        if (user.id_rw) {
+            const rw = data.rw;
+            locationText = rw ? `${rw.kode} - ${rw.nama}` : 'RW';
+        }
+        if (user.id_rt) {
+            const rt = data.rt.find(r => r.id === user.id_rt);
+            locationText += rt ? ` / ${rt.kode} - ${rt.nama}` : ' / RT';
+        }
+        document.getElementById('userLocation').textContent = locationText || 'Sistem';
+
+        // Render menu sesuai role
+        renderMenu(user.role);
+        // Tampilkan halaman default
+        renderPage('dashboard');
+        return true;
+    }
+
+    function logout() {
+        clearCurrentUser();
+        document.getElementById('loginPage').classList.remove('hidden');
+        document.getElementById('appContainer').classList.add('hidden');
+        document.getElementById('loginError').classList.add('hidden');
+        document.getElementById('loginUsername').value = '';
+        document.getElementById('loginPassword').value = '';
+    }
+
+    // ==================== INIT ====================
+    document.addEventListener('DOMContentLoaded', function() {
+        // Cek apakah sudah login
+        if (isLoggedIn()) {
+            const user = getCurrentUser();
+            // Validasi user masih ada di data
+            const found = findUserByUsername(user.username);
+            if (found) {
+                setCurrentUser(found);
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('appContainer').classList.remove('hidden');
+                document.getElementById('userNameDisplay').textContent = found.nama;
+                // Lokasi
+                const data = getData();
+                let locationText = '';
+                if (found.id_rw) {
+                    const rw = data.rw;
+                    locationText = rw ? `${rw.kode} - ${rw.nama}` : 'RW';
+                }
+                if (found.id_rt) {
+                    const rt = data.rt.find(r => r.id === found.id_rt);
+                    locationText += rt ? ` / ${rt.kode} - ${rt.nama}` : ' / RT';
+                }
+                document.getElementById('userLocation').textContent = locationText || 'Sistem';
+                renderMenu(found.role);
+                renderPage('dashboard');
+                return;
+            } else {
+                clearCurrentUser();
+            }
+        }
+
+        // Login form
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            login(username, password);
+        });
+    });
+</script>
+</body>
+</html>
